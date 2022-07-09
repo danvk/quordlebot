@@ -63,8 +63,6 @@ def filter_by_guess(words: List[str], guess: Guess) -> List[str]:
 
 
 def information_gain(words: List[str], guess: str) -> float:
-    if guess.endswith('E'):
-        print(guess)
     base_entropy = math.log2(len(words))
     nexts = Counter(result_for_guess(word, guess) for word in words)
     entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
@@ -80,7 +78,31 @@ if __name__ == "__main__":
     for (guess, *results) in guesses:
         assert len(results) == 4
         for i in (0, 1, 2, 3):
-            words[i] = filter_by_guess(words[i], Guess(guess, results[i]))
-        print(guess, [len(w) for w in words])
+            result = results[i]
+            if result == 'ggggg':
+                # we got it!
+                words[i] = None
+            elif words[i]:
+                words[i] = filter_by_guess(words[i], Guess(guess, results[i]))
+        print(guess, [len(w) if w else 1 for w in words])
+
+    # Always guess a word if we've got it nailed
+    for i, quad in enumerate(words):
+        if not quad:
+            continue
+        if len(quad) == 1:
+            print(f'Quad {i} must be {quad[0]}')
+        elif len(quad) < 4:
+            print(f'Quad {i} is one of {quad}')
+
+    # ignore words that we've already gotten correct
+    quads = [w for w in words if w is not None]
+    gains = []
+    for guess in allowed:
+        gain = sum(information_gain(words, guess) for words in quads)
+        gains.append((gain, guess))
+
+    gains.sort(reverse=True)
+    print(gains[:10])
 
     # print("\n".join(words))
