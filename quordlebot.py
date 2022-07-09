@@ -8,7 +8,9 @@ Usage:
 Finds the plays that maximize information gain.
 """
 
+from collections import Counter
 from dataclasses import dataclass
+import math
 from typing import List
 import sys
 
@@ -60,15 +62,19 @@ if __name__ == "__main__":
     wordbank = [word.strip() for word in open("words/wordbank.txt")]
     allowed = [word.strip() for word in open("words/allowed.txt")]
 
-    assert 'TREAD' in wordbank
-    assert 'STEAD' in wordbank
+    base_entropy = math.log2(len(wordbank))
+    # for guess in allowed:
+    guess = sys.argv[1]
+    nexts = Counter(result_for_guess(word, guess) for word in wordbank)
+    print(nexts)
+    entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
+    print(base_entropy, entropy, base_entropy - entropy)
 
-    guesses_str = sys.argv[1:]
-    guesses = [
-        Guess(guess.split(",")[0], guess.split(",")[1])
-        for guess in guesses_str
-    ]
-    print(guesses)
-    words = get_valid_solutions(wordbank, guesses)
+    # guesses_str = sys.argv[1:]
+    # guesses = [
+    #     Guess(guess.split(",")[0], guess.split(",")[1])
+    #     for guess in guesses_str
+    # ]
+    # words = get_valid_solutions(wordbank, guesses)
 
-    print("\n".join(words))
+    # print("\n".join(words))
