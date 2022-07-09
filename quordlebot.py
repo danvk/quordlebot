@@ -58,6 +58,10 @@ def get_valid_solutions(words: List[str], guesses: List[Guess]) -> List[str]:
     return [word for word in words if is_valid_for_guesses(word, guesses)]
 
 
+def filter_by_guess(words: List[str], guess: Guess) -> List[str]:
+    return [word for word in words if is_valid_for_guess(word, guess)]
+
+
 def information_gain(words: List[str], guess: str) -> float:
     if guess.endswith('E'):
         print(guess)
@@ -71,16 +75,12 @@ if __name__ == "__main__":
     wordbank = [word.strip() for word in open("words/wordbank.txt")]
     allowed = [word.strip() for word in open("words/allowed.txt")]
 
-    gains = [(information_gain(wordbank, guess), guess) for guess in allowed]
-    gains.sort(reverse=True)
-    print(gains[:10])
-    print(gains[-10:])
-
-    # guesses_str = sys.argv[1:]
-    # guesses = [
-    #     Guess(guess.split(",")[0], guess.split(",")[1])
-    #     for guess in guesses_str
-    # ]
-    # words = get_valid_solutions(wordbank, guesses)
+    guesses = [g.split(',') for g in sys.argv[1:]]
+    words = [wordbank, wordbank, wordbank, wordbank]
+    for (guess, *results) in guesses:
+        assert len(results) == 4
+        for i in (0, 1, 2, 3):
+            words[i] = filter_by_guess(words[i], Guess(guess, results[i]))
+        print(guess, [len(w) for w in words])
 
     # print("\n".join(words))
