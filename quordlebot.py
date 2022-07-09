@@ -10,7 +10,8 @@ Finds the plays that maximize information gain.
 
 from dataclasses import dataclass
 from typing import List
-from collections import Counter
+import sys
+
 
 @dataclass
 class Guess:
@@ -21,13 +22,13 @@ class Guess:
 
 
 def result_for_guess(word_str: str, guess_str: str) -> str:
-    result = ['.', '.', '.', '.', '.']
+    result = [".", ".", ".", ".", "."]
     word = [*word_str]
     guess = [*guess_str]
     # pass 1: greens
     for i, (w, g) in enumerate(zip(word, guess)):
         if w == g:
-            result[i] = 'g'
+            result[i] = "g"
             guess[i] = None
             word[i] = None
     # pass 2: yellows
@@ -36,28 +37,38 @@ def result_for_guess(word_str: str, guess_str: str) -> str:
             continue
         try:
             j = word.index(g)
-            result[i] = 'y'
+            result[i] = "y"
             word[j] = None
         except ValueError:
             pass
-    return ''.join(result)
+    return "".join(result)
 
 
 def is_valid_for_guess(word: str, guess: Guess) -> bool:
-    letters = Counter(word)
-    for i, (letter, result) in enumerate(zip(guess.word, guess.result)):
-        if result == '.':
-            if letter in letters:
-                return False
-        if result == 'y':
-            if letter not in letters or word[i] == letter:
-                return False
-        if result == 'g':
-            if word[i] != letter:
-                return False
-    # TODO: handle repeat letters
-    return True
+    return result_for_guess(word, guess.word) == guess.result
 
 
-def find_solutions(words: List[str], guesses: List[Guess]) -> List[str]:
-    pass
+def is_valid_for_guesses(word: str, guesses: List[Guess]) -> bool:
+    return all(is_valid_for_guess(word, guess) for guess in guesses)
+
+
+def get_valid_solutions(words: List[str], guesses: List[Guess]) -> List[str]:
+    return [word for word in words if is_valid_for_guesses(word, guesses)]
+
+
+if __name__ == "__main__":
+    wordbank = [word.strip() for word in open("words/wordbank.txt")]
+    allowed = [word.strip() for word in open("words/allowed.txt")]
+
+    assert 'TREAD' in wordbank
+    assert 'STEAD' in wordbank
+
+    guesses_str = sys.argv[1:]
+    guesses = [
+        Guess(guess.split(",")[0], guess.split(",")[1])
+        for guess in guesses_str
+    ]
+    print(guesses)
+    words = get_valid_solutions(wordbank, guesses)
+
+    print("\n".join(words))
