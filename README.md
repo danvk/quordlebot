@@ -67,13 +67,13 @@ So 12,972 guessable words total.
 
 Next steps:
 
-- Rerun initial play analysis with larger list of guessable words
-- Look for the best static pair of initial plays
-- See if using cPickle is faster/more compact than JSON
-- Print how many bits of information were gained by your actual guesses
-- Explore the game tree to find strategies to minimize expected remaining guesses
-- Add a mode that takes the four words and your guesses, rather than .yg
-- Factor out a Quordle class
+- [x] Rerun initial play analysis with larger list of guessable words
+- [ ] Look for the best static pair of initial plays
+- [ ] See if using cPickle is faster/more compact than JSON
+- [x] Print how many bits of information were gained by your actual guesses
+- [ ] Explore the game tree to find strategies to minimize expected remaining guesses
+- [x] Add a mode that takes the four words and your guesses, rather than .yg
+- [ ] Factor out a Quordle class
 
 Updated best and worst first guesses:
 

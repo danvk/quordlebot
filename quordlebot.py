@@ -79,11 +79,14 @@ if __name__ == "__main__":
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
 
-    guesses = [g.split(',') for g in sys.argv[1:]]
+    (correct_raw, *guesses) = sys.argv[1:]
+    correct = correct_raw.split(',')
+    assert len(correct) == 4
+
     words = [wordbank, wordbank, wordbank, wordbank]
     pposs = len(wordbank) ** 4
-    for (guess, *results) in guesses:
-        assert len(results) == 4
+    for guess in guesses:
+        results = [lookup[w][guess] for w in correct]
         for i in (0, 1, 2, 3):
             result = results[i]
             if result == 'ggggg':
@@ -94,7 +97,7 @@ if __name__ == "__main__":
         counts = [len(w) if w else 1 for w in words]
         poss = math.prod(counts)
         gain = math.log2(pposs) - math.log2(poss)
-        print(f'{guess} -> {counts} = {poss} +{gain:.2f} bits')
+        print(f'{guess} {results} -> {counts} = {poss} +{gain:.2f} bits')
         pposs = poss
 
     # Always guess a word if we've got it nailed
