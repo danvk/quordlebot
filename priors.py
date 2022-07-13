@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     gains = [
         (
-            wordler.information_gain(wordler.all_wordbank_words(), i),
+            wordler.information_gain(i),
             i
         )
         for i in range(len(wordler.guessable))

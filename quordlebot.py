@@ -131,9 +131,9 @@ class ArrayWordle:
     def all_wordbank_words(self):
         return [*range(len(self.wordbank))]
 
-    def information_gain(self, words: List[int], guess: int) -> List[int]:
-        base_entropy = math.log2(len(words))
-        nexts = Counter(self.results[word][guess] for word in words)
+    def information_gain(self, guess: int) -> List[int]:
+        base_entropy = math.log2(len(self.wordbank))
+        nexts = Counter(result[guess] for result in self.results)
         entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
         return base_entropy - entropy
 
