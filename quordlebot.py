@@ -75,16 +75,9 @@ def information_gain(lookup: Dict[str, Dict[str, str]], words: List[str], guess:
 
 
 if __name__ == "__main__":
-    # wordbank = [word.strip() for word in open("words/wordbank.txt")]
-    # allowed = [word.strip() for word in open("words/allowed.txt")]
     lookup = json.load(open('words/map.json'))
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
-    print(len(wordbank))
-    print(len(allowed))
-    print(len(lookup['CRANE']))
-    # lookup is wordbank word --> guess --> result
-    assert lookup['DEALT']['MAVEN'] == '.y.y.'
 
     guesses = [g.split(',') for g in sys.argv[1:]]
     words = [wordbank, wordbank, wordbank, wordbank]
@@ -121,5 +114,6 @@ if __name__ == "__main__":
 
     gains.sort(reverse=True)
     print(gains[:10])
+    print(gains[-10:])
 
     # print("\n".join(words))
