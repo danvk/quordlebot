@@ -88,6 +88,7 @@ if __name__ == "__main__":
 
     guesses = [g.split(',') for g in sys.argv[1:]]
     words = [wordbank, wordbank, wordbank, wordbank]
+    pposs = len(wordbank) ** 4
     for (guess, *results) in guesses:
         assert len(results) == 4
         for i in (0, 1, 2, 3):
@@ -97,7 +98,10 @@ if __name__ == "__main__":
                 words[i] = None
             elif words[i]:
                 words[i] = filter_by_guess_lookup(lookup, words[i], Guess(guess, results[i]))
-        print(guess, [len(w) if w else 1 for w in words])
+        counts = [len(w) if w else 1 for w in words]
+        poss = math.prod(counts)
+        print(guess, counts, poss, math.log2(pposs) - math.log2(poss))
+        pposs = poss
 
     # Always guess a word if we've got it nailed
     for i, quad in enumerate(words):

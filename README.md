@@ -64,3 +64,12 @@ The lists are actually disjoint! So I need to add the wordbank words to the allo
     |B - A|: 10657
 
 So 12,972 guessable words total.
+
+Next steps:
+
+- Rerun initial play analysis with larger list of guessable words
+- Look for the best static pair of initial plays
+- See if using cPickle is faster/more compact than JSON
+- Print how many bits of information were gained by your actual guesses
+- Explore the game tree to find strategies to minimize expected remaining guesses
+- Add a mode that takes the four words and your guesses, rather than .yg
