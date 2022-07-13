@@ -1,4 +1,4 @@
-from quordlebot import Guess, result_for_guess, is_valid_for_guess, is_valid_for_guesses, get_valid_solutions
+from quordlebot import Guess, result_for_guess, is_valid_for_guess, is_valid_for_guesses, get_valid_solutions, encode_result, decode_result
 
 
 def test_result_for_guess_simple():
@@ -34,3 +34,10 @@ def test_is_valid_for_guesses():
 def test_get_valid_solutions():
     assert get_valid_solutions(['TREAD', 'STEAD', 'TRADE'], [Guess('DEALT', 'yyy.y')]) == ['TREAD', 'STEAD']
     assert get_valid_solutions(['TREAD', 'STEAD', 'TRADE'], [Guess('DEALT', 'yyy.y'), Guess('TREAD', 'y.ggg')]) == ['STEAD']
+
+
+def test_encode_decode():
+    assert decode_result(encode_result('.....')) == '.....'
+    assert decode_result(encode_result('gy...')) == 'gy...'
+    assert decode_result(encode_result('yy.g.')) == 'yy.g.'
+    assert decode_result(encode_result('...gy')) == '...gy'

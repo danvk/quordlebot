@@ -75,6 +75,39 @@ def information_gain(lookup: Dict[str, Dict[str, str]], words: List[str], guess:
     return base_entropy - entropy
 
 
+def encode_result(result: str) -> int:
+    out = 0
+    for char in result:
+        out *= 4
+        if char == 'y':
+            out += 1
+        elif char == 'g':
+            out += 2
+        elif char == '.':
+            pass
+        else:
+            raise ValueError(f'Invalid char {char} in result: {result}')
+    return out
+
+
+def decode_result(result: int) -> str:
+    out = ['.', '.', '.', '.', '.']
+    i = 4
+    while result:
+        x = result % 4
+        if x == 1:
+            out[i] = 'y'
+        elif x == 2:
+            out[i] = 'g'
+        elif x == 0:
+            pass
+        else:
+            raise ValueError(f'Invalid encoded result: {result}')
+        i -= 1
+        result //= 4
+    return ''.join(out)
+
+
 if __name__ == "__main__":
     # lookup = json.load(open('words/map.json'))
     lookup = pickle.load(open('words/map.pickle', 'rb'))
