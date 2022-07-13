@@ -69,7 +69,7 @@ Next steps:
 
 - [x] Rerun initial play analysis with larger list of guessable words
 - [ ] Look for the best static pair of initial plays
-- [ ] See if using cPickle is faster/more compact than JSON
+- [x] See if using pickle is faster/more compact than JSON (it is: 7.468s->5.060s for quordlebot.py)
 - [x] Print how many bits of information were gained by your actual guesses
 - [ ] Explore the game tree to find strategies to minimize expected remaining guesses
 - [x] Add a mode that takes the four words and your guesses, rather than .yg

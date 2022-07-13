@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 words/map.json
+words/map.pickle

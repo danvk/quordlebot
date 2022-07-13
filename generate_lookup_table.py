@@ -3,6 +3,7 @@
 
 from quordlebot import result_for_guess
 import json
+import pickle
 
 if __name__ == "__main__":
     wordbank = [word.strip() for word in open("words/wordbank.txt")]
@@ -24,3 +25,6 @@ if __name__ == "__main__":
 
     with open('words/map.json', 'w') as out_file:
         json.dump(out, out_file)
+
+    with open('words/map.pickle', 'wb') as out_file:
+        pickle.dump(out, out_file)

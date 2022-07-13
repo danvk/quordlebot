@@ -11,6 +11,7 @@ Finds the plays that maximize information gain.
 from collections import Counter
 from dataclasses import dataclass
 import math
+import pickle
 import json
 from typing import List, Dict
 import sys
@@ -75,7 +76,8 @@ def information_gain(lookup: Dict[str, Dict[str, str]], words: List[str], guess:
 
 
 if __name__ == "__main__":
-    lookup = json.load(open('words/map.json'))
+    # lookup = json.load(open('words/map.json'))
+    lookup = pickle.load(open('words/map.pickle', 'rb'))
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
 
@@ -118,6 +120,3 @@ if __name__ == "__main__":
 
     gains.sort(reverse=True)
     print(gains[:10])
-    print(gains[-10:])
-
-    # print("\n".join(words))
