@@ -1,17 +1,9 @@
 #!/usr/bin/env python
 
-from dataclasses import dataclass
 from typing import List
 import pickle
 
-from quordlebot import encode_result
-
-
-@dataclass
-class ResultDict:
-    wordbank: List[str]
-    guessable: List[str]
-    results: List[List[int]]
+from quordlebot import encode_result, ResultDict
 
 
 if __name__ == '__main__':

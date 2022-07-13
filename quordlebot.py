@@ -10,6 +10,7 @@ Finds the plays that maximize information gain.
 
 from collections import Counter
 from dataclasses import dataclass
+import enum
 import math
 import pickle
 import json
@@ -106,6 +107,35 @@ def decode_result(result: int) -> str:
         i -= 1
         result //= 4
     return ''.join(out)
+
+
+@dataclass
+class ResultDict:
+    wordbank: List[str]
+    guessable: List[str]
+    results: List[List[int]]
+
+
+class ArrayWordle:
+    wordbank: List[str]
+    guessable: List[str]
+    results: List[List[int]]
+
+    def __init__(self, result_dict: ResultDict):
+        self.wordbank = result_dict.wordbank
+        self.guessable = result_dict.guessable
+        self.results = result_dict.results
+        self.wordbank_to_idx = {word: i for i, word in enumerate(self.wordbank)}
+        self.guessable_to_idx = {word: i for i, word in enumerate(self.guessable)}
+
+    def all_wordbank_words(self):
+        return [*range(len(self.wordbank))]
+
+    def information_gain(self, words: List[int], guess: int) -> List[int]:
+        base_entropy = math.log2(len(words))
+        nexts = Counter(self.results[word][guess] for word in words)
+        entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
+        return base_entropy - entropy
 
 
 if __name__ == "__main__":
