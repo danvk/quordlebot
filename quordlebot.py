@@ -137,6 +137,13 @@ class ArrayWordle:
         entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
         return base_entropy - entropy
 
+    def information_gain2(self, guess1: int, guess2: int) -> List[int]:
+        num = len(self.wordbank)
+        base_entropy = math.log2(num)
+        nexts = Counter(result[guess1] * 65536 + result[guess2] for result in self.results)
+        entropy = sum(n * math.log2(n) for n in nexts.values()) / num
+        return base_entropy - entropy
+
 
 if __name__ == "__main__":
     # lookup = json.load(open('words/map.json'))
