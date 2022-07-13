@@ -11,7 +11,8 @@ Finds the plays that maximize information gain.
 from collections import Counter
 from dataclasses import dataclass
 import math
-from typing import List
+import json
+from typing import List, Dict
 import sys
 
 
@@ -62,16 +63,28 @@ def filter_by_guess(words: List[str], guess: Guess) -> List[str]:
     return [word for word in words if is_valid_for_guess(word, guess)]
 
 
-def information_gain(words: List[str], guess: str) -> float:
+def filter_by_guess_lookup(lookup: Dict[str, Dict[str, str]], words: List[str], guess: Guess) -> List[str]:
+    return [word for word in words if lookup[word][guess.word] == guess.result]
+
+
+def information_gain(lookup: Dict[str, Dict[str, str]], words: List[str], guess: str) -> float:
     base_entropy = math.log2(len(words))
-    nexts = Counter(result_for_guess(word, guess) for word in words)
+    nexts = Counter(lookup[word][guess] for word in words)
     entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
     return base_entropy - entropy
 
 
 if __name__ == "__main__":
-    wordbank = [word.strip() for word in open("words/wordbank.txt")]
-    allowed = [word.strip() for word in open("words/allowed.txt")]
+    # wordbank = [word.strip() for word in open("words/wordbank.txt")]
+    # allowed = [word.strip() for word in open("words/allowed.txt")]
+    lookup = json.load(open('words/map.json'))
+    wordbank = [*lookup.keys()]
+    allowed = [*lookup[wordbank[0]].keys()]
+    print(len(wordbank))
+    print(len(allowed))
+    print(len(lookup['CRANE']))
+    # lookup is wordbank word --> guess --> result
+    assert lookup['DEALT']['MAVEN'] == '.y.y.'
 
     guesses = [g.split(',') for g in sys.argv[1:]]
     words = [wordbank, wordbank, wordbank, wordbank]
@@ -83,7 +96,7 @@ if __name__ == "__main__":
                 # we got it!
                 words[i] = None
             elif words[i]:
-                words[i] = filter_by_guess(words[i], Guess(guess, results[i]))
+                words[i] = filter_by_guess_lookup(lookup, words[i], Guess(guess, results[i]))
         print(guess, [len(w) if w else 1 for w in words])
 
     # Always guess a word if we've got it nailed
@@ -92,14 +105,14 @@ if __name__ == "__main__":
             continue
         if len(quad) == 1:
             print(f'Quad {i} must be {quad[0]}')
-        elif len(quad) < 4:
+        elif len(quad) <= 5:
             print(f'Quad {i} is one of {quad}')
 
     # ignore words that we've already gotten correct
     quads = [w for w in words if w is not None]
     gains = []
     for guess in allowed:
-        gain = sum(information_gain(words, guess) for words in quads)
+        gain = sum(information_gain(lookup, words, guess) for words in quads)
         gains.append((gain, guess))
 
     gains.sort(reverse=True)

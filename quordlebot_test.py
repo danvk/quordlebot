@@ -2,6 +2,7 @@ from quordlebot import Guess, result_for_guess, is_valid_for_guess, is_valid_for
 
 
 def test_result_for_guess_simple():
+    assert result_for_guess('DEALT', 'MAVEN') == '.y.y.'
     assert result_for_guess('MAVEN', 'DEALT') == '.yy..'
     assert result_for_guess('STERN', 'DEALT') == '.y..y'
     assert result_for_guess('HAVEN', 'MAVEN') == '.gggg'

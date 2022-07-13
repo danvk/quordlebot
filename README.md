@@ -36,6 +36,31 @@ I remember `ROATE`!
 
 I see no reason to use a different first word for Quordle. What about as a second word? Presumably it depends on the patterns you get out.
 
-[Working Notes][1]
+With optimal information gain play, my quordlebot solves today's in seven, which is the same number of guesses that I used.
 
-[1]: https://docs.google.com/document/d/13_2rYdk_wc9q1g63sxNLUNoaaDAN1mMkgg7rSFWU3CY/edit
+Here's its sequence:
+
+    ./quordlebot.py SOARE,y..y.,..y..,..g..,g.yy. CLIPT,....y,.....,.g...,...yy STRAP,yyy..,...y.,...y.,ggggg DUNGY,.y...,...y.,.....,.....
+    SOARE [16, 138, 40, 8]
+    CLIPT [2, 20, 6, 1]
+    STRAP [2, 17, 6, 1]
+    DUNGY [1, 2, 1, 1]
+    Quad 0 must be TRUSS
+    Quad 1 is one of ['GAMMA', 'MAGMA']
+    Quad 2 must be LLAMA
+
+If your goal were to get a six, I wonder if there's a better strategy than maximizing information gain?
+
+The lists are actually disjoint! So I need to add the wordbank words to the allowed guess list.
+
+    $ two-stats words/wordbank.txt words/allowed.txt
+    A: words/wordbank.txt
+    B: words/allowed.txt
+    |A|: 2315
+    |B|: 10657
+    |A ∪ B|: 12972
+    |A ∩ B|: 0
+    |A - B|: 2315
+    |B - A|: 10657
+
+So 12,972 guessable words total.
