@@ -93,7 +93,8 @@ if __name__ == "__main__":
                 words[i] = filter_by_guess_lookup(lookup, words[i], Guess(guess, results[i]))
         counts = [len(w) if w else 1 for w in words]
         poss = math.prod(counts)
-        print(guess, counts, poss, math.log2(pposs) - math.log2(poss))
+        gain = math.log2(pposs) - math.log2(poss)
+        print(f'{guess} -> {counts} = {poss} +{gain:.2f} bits')
         pposs = poss
 
     # Always guess a word if we've got it nailed
