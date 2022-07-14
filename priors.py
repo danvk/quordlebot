@@ -28,14 +28,16 @@ if __name__ == "__main__":
     print(f'Max gain for one word: {maxgain}')
 
     candidates = [(gain, i) for gain, i in gains if gain + maxgain >= goodpair]
+    guessables = [*range(len(wordler.guessable))]
 
     tops = []
     for n, (gain1, guess1) in enumerate(candidates):
         g1str = wordler.guessable[guess1]
         # this = []
-        for guess2 in range(len(wordler.guessable)):
+        for guess2 in guessables:
             gain = wordler.information_gain2(guess1, guess2)
-            tops.append((gain, guess1, guess2))
+            if not tops or gain > tops[-1][0]:
+                tops.append((gain, guess1, guess2))
             # this.append((gain, guess2))
         print(f'Completed {n} / {len(candidates)}: {guess1} {g1str} initial gain {gain1:.2f} @ {time.ctime()}')
         tops.sort(reverse=True)
@@ -48,5 +50,6 @@ if __name__ == "__main__":
             g2 = wordler.guessable[j]
             print(f'  {g1} {g2} -> +{gain:.2f} bits')
         sys.stdout.flush()
+        del guessables[guessables.index(guess1)]
 
     # print("\n".join(words))
