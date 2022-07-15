@@ -70,7 +70,7 @@ Next steps:
 - [x] Rerun initial play analysis with larger list of guessable words
 - [ ] Look for the best static pair of initial plays
   - [x] Remove first word from list of seconds after examing
-  - [ ] Parallelize the search
+  - [x] Parallelize the search
   - [ ] Is sorting the list and then doing counts faster?
   - [ ] Does factoring out the `result[guess1]` lookup matter?
 - [x] See if using pickle is faster/more compact than JSON (it is: 7.468s->5.060s for quordlebot.py)
@@ -83,3 +83,29 @@ Updated best and worst first guesses:
 
 [(5.885960110378853, 'SOARE'), (5.882779324291968, 'ROATE'), (5.877909690821479, 'RAISE'), (5.865709709951878, 'RAILE'), (5.865457142861989, 'REAST'), (5.855775376955964, 'SLATE'), (5.834581525865644, 'SALET'), (5.832589698902821, 'CRATE'), (5.831396980440786, 'IRATE'), (5.829323821643724, 'TRACE')]
 [(2.2851367360614, 'GYPPY'), (2.267954317843193, 'KUDZU'), (2.2436395107418843, 'FUFFY'), (2.2341699553948438, 'JAFFA'), (2.2141711564276, 'PZAZZ'), (2.206893724562269, 'YUKKY'), (2.192000567958077, 'XYLYL'), (2.0525999694165993, 'IMMIX'), (2.0383091074888515, 'JUJUS'), (1.8918361327315534, 'QAJAQ')]
+
+Best first two guesses:
+
+    SOARE CLINT -> +9.63 bits
+    ROAST CLINE -> +9.61 bits *
+    SOCLE RIANT -> +9.61 bits
+    RIANT CLOSE -> +9.61 bits
+    LOAST CRINE -> +9.60 bits
+    SAINT CEORL -> +9.60 bits
+    TRAIL SONCE -> +9.59 bits
+    ROIST LANCE -> +9.58 bits
+    SONCE LIART -> +9.58 bits
+    TRICE SALON -> +9.58 bits
+    SARIN CLOTE -> +9.58 bits
+    LIANE CROST -> +9.58 bits
+    TORAN SLICE -> +9.58 bits
+    TOILE CARNS -> +9.57 bits
+    NOISE CLART -> +9.57 bits
+    TRAIN SOCLE -> +9.57 bits
+    TRINE COALS -> +9.57 bits
+    TOILS CRANE -> +9.57 bits
+    TOILE CRANS -> +9.57 bits
+    CRANE TOILS -> +9.57 bits *
+    DOILT CARSE -> +9.56 bits
+
+ROAST/CLINE feels somewhat not made up; CRANE/TOILS are both clearly real words.

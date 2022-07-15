@@ -2,9 +2,31 @@
 """Find best first Quordle guesses."""
 
 import pickle
+import multiprocessing
+from pathos.multiprocessing import ProcessingPool as Pool
 import time
 import sys
+from typing import List, Tuple
 from quordlebot import ResultDict, ArrayWordle
+
+
+def top_second_guesses(wordler: ArrayWordle, guess1: int, guessables: List[int]) -> List[Tuple[float, int, int]]:
+    gains = [
+        (wordler.information_gain2(guess1, guess2), guess1, guess2)
+        for guess2 in guessables
+    ]
+    gains.sort(reverse=True)
+    return gains[:20]
+
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
+def flatten(xss):
+    return [x for xs in xss for x in xs]
 
 
 if __name__ == "__main__":
@@ -30,26 +52,26 @@ if __name__ == "__main__":
     candidates = [(gain, i) for gain, i in gains if gain + maxgain >= goodpair]
     guessables = [*range(len(wordler.guessable))]
 
+    cpus = multiprocessing.cpu_count()
     tops = []
-    for n, (gain1, guess1) in enumerate(candidates):
-        g1str = wordler.guessable[guess1]
-        # this = []
-        for guess2 in guessables:
-            gain = wordler.information_gain2(guess1, guess2)
-            if not tops or gain > tops[-1][0]:
-                tops.append((gain, guess1, guess2))
-            # this.append((gain, guess2))
-        print(f'Completed {n} / {len(candidates)}: {guess1} {g1str} initial gain {gain1:.2f} @ {time.ctime()}')
-        tops.sort(reverse=True)
-        tops = tops[:100]
-        # this.sort(reverse=True)
-        # this = this[:10]
-        # print([(wordler.guessable[j], gain) for gain, j in this[:10]])
-        for gain, i, j in tops[:40]:
-            g1 = wordler.guessable[i]
-            g2 = wordler.guessable[j]
-            print(f'  {g1} {g2} -> +{gain:.2f} bits')
-        sys.stdout.flush()
-        del guessables[guessables.index(guess1)]
+    num_processed = 0
+    with Pool(cpus) as pool:
+        for chunk in chunks(candidates, cpus):
+            chunk_tops = pool.map(
+                lambda gi: top_second_guesses(wordler, gi[1], guessables),
+                chunk
+            )
+            flat_tops = flatten(chunk_tops)
+            tops += flat_tops
+            tops.sort(reverse=True)
+            tops = tops[:100]
+            num_processed += len(chunk)
+            for gain, guess1 in chunk:
+                del guessables[guessables.index(guess1)]
 
-    # print("\n".join(words))
+            print(f'Completed {num_processed} / {len(candidates)}: {chunk} @ {time.ctime()}')
+            for gain, i, j in tops[:40]:
+                g1 = wordler.guessable[i]
+                g2 = wordler.guessable[j]
+                print(f'  {g1} {g2} -> +{gain:.2f} bits')
+            sys.stdout.flush()
