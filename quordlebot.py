@@ -3,7 +3,7 @@
 
 Usage:
 
-    ./quordlebot.py GUESS,..gy.,gy...,.....,...ygy GUESS,...
+    ./quordlebot.py ANSWER1,ANSWER2,ANSWER3,ANSWER4 GUESS1 GUESS2
 
 Finds the plays that maximize information gain.
 """
@@ -188,5 +188,7 @@ if __name__ == "__main__":
         gain = sum(information_gain(lookup, words, guess) for words in quads)
         gains.append((gain, guess))
 
+    print('Best next plays based on expected information gain:')
     gains.sort(reverse=True)
-    print(gains[:10])
+    for gain, word in gains[:10]:
+        print(f'  {word} -> +{gain:.2f} bits')

@@ -2,6 +2,34 @@
 
 Like WordleBot, but for Quordle. How can I get it in six?
 
+## Usage
+
+Install / generate lookup tables:
+
+    python3 -m venv venv
+    pip install -r requirements.txt
+
+    ./generate_lookup_table.py
+    ./generate_array.py
+    ls -lh words/map.pickle words/array.pickle
+
+Find the best next play:
+
+    ./quordlebot.py NYLON,SHELF,VIRAL,BUDGE ROAST
+    ROAST ['.y...', '...y.', 'y.y..', '.....'] -> [76, 94, 73, 266] = 138722192 +17.66 bits
+    Best next plays based on expected information gain:
+    CLINE -> +20.00 bits
+    INCLE -> +19.36 bits
+    CLIPE -> +19.29 bits
+    CLIME -> +19.26 bits
+
+Find the best plays absent any feedback:
+
+    ./priors.py
+    # (takes many hours to run!)
+
+## Notes
+
 The word list is inlined into the Quordle JS:
 
 ```json
