@@ -96,7 +96,7 @@ So 12,972 guessable words total.
 Next steps:
 
 - [x] Rerun initial play analysis with larger list of guessable words
-- [ ] Look for the best static pair of initial plays
+- [x] Look for the best static pair of initial plays
   - [x] Remove first word from list of seconds after examing
   - [x] Parallelize the search
   - [ ] Is sorting the list and then doing counts faster?
@@ -104,6 +104,7 @@ Next steps:
 - [x] See if using pickle is faster/more compact than JSON (it is: 7.468s->5.060s for quordlebot.py)
 - [x] Print how many bits of information were gained by your actual guesses
 - [ ] Explore the game tree to find strategies to minimize expected remaining guesses
+- [ ] Ignore subsequent guesses after you've gotten a word
 - [x] Add a mode that takes the four words and your guesses, rather than .yg
 - [ ] Factor out a Quordle class
 

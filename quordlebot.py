@@ -158,8 +158,10 @@ if __name__ == "__main__":
     words = [wordbank, wordbank, wordbank, wordbank]
     pposs = len(wordbank) ** 4
     for guess in guesses:
-        results = [lookup[w][guess] for w in correct]
+        results = [lookup[w][guess] if words[i] is not None else '-----' for i, w in enumerate(correct)]
         for i in (0, 1, 2, 3):
+            if words[i] is None:
+                continue  # already got this one
             result = results[i]
             if result == 'ggggg':
                 # we got it!
@@ -169,10 +171,10 @@ if __name__ == "__main__":
         counts = [len(w) if w else 1 for w in words]
         poss = math.prod(counts)
         gain = math.log2(pposs) - math.log2(poss)
-        print(f'{guess} {results} -> {counts} = {poss} +{gain:.2f} bits')
+        print(f'{guess} {"  ".join(results)} -> {counts} = {poss} +{gain:.2f} bits')
         pposs = poss
 
-    # Always guess a word if we've got it nailed
+    # Report fully- or nearly-determined words.
     for i, quad in enumerate(words):
         if not quad:
             continue
