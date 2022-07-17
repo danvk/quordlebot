@@ -10,11 +10,10 @@ Finds the plays that maximize information gain.
 
 from collections import Counter
 from dataclasses import dataclass
-import enum
 import math
 import pickle
-import json
-from typing import List, Dict
+import itertools
+from typing import List, Dict, Tuple, Union
 import sys
 
 
@@ -65,11 +64,15 @@ def filter_by_guess(words: List[str], guess: Guess) -> List[str]:
     return [word for word in words if is_valid_for_guess(word, guess)]
 
 
-def filter_by_guess_lookup(lookup: Dict[str, Dict[str, str]], words: List[str], guess: Guess) -> List[str]:
+def filter_by_guess_lookup(
+    lookup: Dict[str, Dict[str, str]], words: List[str], guess: Guess
+) -> List[str]:
     return [word for word in words if lookup[word][guess.word] == guess.result]
 
 
-def information_gain(lookup: Dict[str, Dict[str, str]], words: List[str], guess: str) -> float:
+def information_gain(
+    lookup: Dict[str, Dict[str, str]], words: List[str], guess: str
+) -> float:
     base_entropy = math.log2(len(words))
     nexts = Counter(lookup[word][guess] for word in words)
     entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
@@ -80,33 +83,33 @@ def encode_result(result: str) -> int:
     out = 0
     for char in result:
         out *= 4
-        if char == 'y':
+        if char == "y":
             out += 1
-        elif char == 'g':
+        elif char == "g":
             out += 2
-        elif char == '.':
+        elif char == ".":
             pass
         else:
-            raise ValueError(f'Invalid char {char} in result: {result}')
+            raise ValueError(f"Invalid char {char} in result: {result}")
     return out
 
 
 def decode_result(result: int) -> str:
-    out = ['.', '.', '.', '.', '.']
+    out = [".", ".", ".", ".", "."]
     i = 4
     while result:
         x = result % 4
         if x == 1:
-            out[i] = 'y'
+            out[i] = "y"
         elif x == 2:
-            out[i] = 'g'
+            out[i] = "g"
         elif x == 0:
             pass
         else:
-            raise ValueError(f'Invalid encoded result: {result}')
+            raise ValueError(f"Invalid encoded result: {result}")
         i -= 1
         result //= 4
-    return ''.join(out)
+    return "".join(out)
 
 
 @dataclass
@@ -140,34 +143,110 @@ class ArrayWordle:
     def information_gain2(self, guess1: int, guess2: int) -> List[int]:
         num = len(self.wordbank)
         base_entropy = math.log2(num)
-        nexts = Counter(result[guess1] * 65536 + result[guess2] for result in self.results)
+        nexts = Counter(
+            result[guess1] * 65536 + result[guess2] for result in self.results
+        )
         entropy = sum(n * math.log2(n) for n in nexts.values()) / num
         return base_entropy - entropy
 
 
+def groupby(xs, fn):
+    out = {}
+    for x in xs:
+        v = fn(x)
+        out.setdefault(v, []).append(x)
+    return out
+
+
+def expected_plays_for_guess(
+    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], guess: str, bail_bad: bool
+) -> Union[float, None]:
+    # print('expected_plays_for_guess', guess, quads)
+    # group the remaining quads by what this guess would produce
+    groups = []
+    poss = 1
+    for quad in quads:
+        g = groupby(quad, lambda word: lookup[word][guess])
+        poss *= len(g)
+        groups.append([*g.values()])
+
+    if bail_bad and poss == 1:
+        # This was a bad guess; bail out
+        # print(f'Bailing on bad guess: {guess} {groups}')
+        return None
+
+    # print(f'Considering guess: {guess} {groups}')
+
+    # print(groups)
+    # form a weighted average of steps to solve
+    num = 0.0
+    den = 0
+    for new_quads in itertools.product(*groups):
+        # This isn't quite right, there must be some correlation between new_quads
+        # print('possible quad', new_quads)
+        next_guesses = find_best_plays(lookup, new_quads)
+        guesses_needed = next_guesses[0][0]
+        # print(f'  {guesses_needed:.2f} {new_quads}')
+        num_for_this = math.prod(len(q) for q in new_quads)
+        num += guesses_needed * num_for_this
+        den += num_for_this
+    return num / den
+
+
+def find_best_plays(
+    lookup: Dict[str, Dict[str, str]], quads: List[List[str]]
+) -> List[Tuple[float, str]]:
+    """Return the bets next plays based on expected of remaining plays."""
+    # if any quad is fully-determined, guess that
+    for i, quad in enumerate(quads):
+        if len(quad) == 1:
+            guess = quad[0]
+            others = [q for j, q in enumerate(quads) if i != j]
+            if not others:
+                # we're done!
+                return [(1, guess)]
+
+            return [(expected_plays_for_guess(lookup, others, guess, bail_bad=False), guess)]
+
+    # Try everything
+    wordbank = [*lookup.keys()]
+    allowed = [*lookup[wordbank[0]].keys()]
+    plays = [
+        (expected_plays_for_guess(lookup, quads, guess, bail_bad=True), guess) for guess in allowed
+    ]
+    plays = [p for p in plays if p[0] is not None]
+    plays.sort()
+    return plays[:10]
+
+
 if __name__ == "__main__":
     # lookup = json.load(open('words/map.json'))
-    lookup = pickle.load(open('words/map.pickle', 'rb'))
+    lookup = pickle.load(open("words/map.pickle", "rb"))
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
 
     (correct_raw, *guesses) = sys.argv[1:]
-    correct = correct_raw.split(',')
+    correct = correct_raw.split(",")
     assert len(correct) == 4
 
     words = [wordbank, wordbank, wordbank, wordbank]
     pposs = len(wordbank) ** 4
     for guess in guesses:
-        results = [lookup[w][guess] if words[i] is not None else '-----' for i, w in enumerate(correct)]
+        results = [
+            lookup[w][guess] if words[i] is not None else "-----"
+            for i, w in enumerate(correct)
+        ]
         for i in (0, 1, 2, 3):
             if words[i] is None:
                 continue  # already got this one
             result = results[i]
-            if result == 'ggggg':
+            if result == "ggggg":
                 # we got it!
                 words[i] = None
             elif words[i]:
-                words[i] = filter_by_guess_lookup(lookup, words[i], Guess(guess, results[i]))
+                words[i] = filter_by_guess_lookup(
+                    lookup, words[i], Guess(guess, results[i])
+                )
         counts = [len(w) if w else 1 for w in words]
         poss = math.prod(counts)
         gain = math.log2(pposs) - math.log2(poss)
@@ -179,18 +258,26 @@ if __name__ == "__main__":
         if not quad:
             continue
         if len(quad) == 1:
-            print(f'Quad {i} must be {quad[0]}')
+            print(f"Quad {i} must be {quad[0]}")
         elif len(quad) <= 5:
-            print(f'Quad {i} is one of {quad}')
+            print(f"Quad {i} is one of {quad}")
 
-    # ignore words that we've already gotten correct
     quads = [w for w in words if w is not None]
-    gains = []
-    for guess in allowed:
-        gain = sum(information_gain(lookup, words, guess) for words in quads)
-        gains.append((gain, guess))
+    if poss < 200:
+        # with few possibilities, game out remaining guesses
+        plays = find_best_plays(lookup, quads)
+        print("Best next plays by expected number of steps to complete:")
+        for steps, guess in plays:
+            print(f"  {steps:.2f} {guess}")
+    else:
+        # with lots of possibilities, try to maximize information gain
+        # ignore words that we've already gotten correct
+        gains = []
+        for guess in allowed:
+            gain = sum(information_gain(lookup, words, guess) for words in quads)
+            gains.append((gain, guess))
 
-    print('Best next plays based on expected information gain:')
-    gains.sort(reverse=True)
-    for gain, word in gains[:10]:
-        print(f'  {word} -> +{gain:.2f} bits')
+        print("Best next plays based on expected information gain:")
+        gains.sort(reverse=True)
+        for gain, word in gains[:10]:
+            print(f"  {word} -> +{gain:.2f} bits")

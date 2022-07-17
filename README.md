@@ -105,6 +105,7 @@ Next steps:
 - [x] Print how many bits of information were gained by your actual guesses
 - [ ] Explore the game tree to find strategies to minimize expected remaining guesses
 - [ ] Ignore subsequent guesses after you've gotten a word
+- [ ] Switch `quordlebot.py` to use the array format
 - [x] Add a mode that takes the four words and your guesses, rather than .yg
 - [ ] Factor out a Quordle class
 
