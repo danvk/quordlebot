@@ -206,7 +206,7 @@ def find_best_plays(
                 # we're done!
                 return [(1, guess)]
 
-            return [(expected_plays_for_guess(lookup, others, guess, bail_bad=False), guess)]
+            return [(1 + expected_plays_for_guess(lookup, others, guess, bail_bad=False), guess)]
 
     # Try everything
     wordbank = [*lookup.keys()]
@@ -214,7 +214,11 @@ def find_best_plays(
     plays = [
         (expected_plays_for_guess(lookup, quads, guess, bail_bad=True), guess) for guess in allowed
     ]
-    plays = [p for p in plays if p[0] is not None]
+    for n, guess in plays:
+        if guess in ('DOING', 'GOING', 'AAHED'):
+            print(n, guess)
+
+    plays = [(1+n, guess) for n, guess in plays if n is not None]
     plays.sort()
     return plays[:10]
 
@@ -265,6 +269,7 @@ if __name__ == "__main__":
     quads = [w for w in words if w is not None]
     if poss < 200:
         # with few possibilities, game out remaining guesses
+        print(quads)
         plays = find_best_plays(lookup, quads)
         print("Best next plays by expected number of steps to complete:")
         for steps, guess in plays:

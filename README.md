@@ -104,6 +104,10 @@ Next steps:
 - [x] See if using pickle is faster/more compact than JSON (it is: 7.468s->5.060s for quordlebot.py)
 - [x] Print how many bits of information were gained by your actual guesses
 - [ ] Explore the game tree to find strategies to minimize expected remaining guesses
+  - [ ] Expected number of remaining guesses doesn't seem right?
+  - [ ] Sort un-forced guesses by information gain
+  - [ ] Prune by "best so far"
+  - [ ] Only keep track of optimal number in the cases where that's what we care about
 - [ ] Ignore subsequent guesses after you've gotten a word
 - [ ] Switch `quordlebot.py` to use the array format
 - [x] Add a mode that takes the four words and your guesses, rather than .yg
