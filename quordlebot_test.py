@@ -71,3 +71,6 @@ def test_expected_plays_for_guess():
         (1.5, 'GOING'),
         (2.0, 'AAHED'),  # the "D" at the end differentiates
     ]
+
+    assert expected_plays_for_guess(lookup, [['DOING'], ['GOING']], 'DOING', False) == 1.0
+    assert expected_plays_for_guess(lookup, [['DOING'], ['GOING']], 'DOING', True) == 1.0

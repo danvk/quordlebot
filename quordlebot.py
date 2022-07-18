@@ -158,26 +158,39 @@ def groupby(xs, fn):
     return out
 
 
+DEBUG = False
+max_depth = 0
+
+
 def expected_plays_for_guess(
     lookup: Dict[str, Dict[str, str]], quads: List[List[str]], guess: str, bail_bad: bool, depth=0
 ) -> Union[float, None]:
     """Return the number of expected plays to win _after_ this guess."""
-    # print('  ' * depth, 'expected_plays_for_guess', quads, guess, bail_bad)
+    if DEBUG:
+        print('  ' * depth, 'expected_plays_for_guess', quads, guess, bail_bad)
+
+    global max_depth
+    if depth > max_depth:
+        max_depth = depth
+        print(f'new max depth: {max_depth} for guess {guess}')
+
     # group the remaining quads by what this guess would produce
     groups = []
     poss = 1
     for quad in quads:
-        assert len(quad) > 1
+        # assert len(quad) > 1
         g = groupby(quad, lambda word: lookup[word][guess])
-        # print('  ' * depth, g)
+        if DEBUG:
+            print('  ' * depth, g)
         poss *= len(g)
         groups.append([*g.values()])
     # print(groups)
 
-    if bail_bad and poss == 1:
+    if bail_bad and poss == 1 and not(any(quad == [guess] for quad in quads)):
         # This was a bad guess; bail out
         # print(f'Bailing on bad guess: {guess} {groups}')
-        # print('  ' * depth, '--> None (bail_bad)')
+        if DEBUG:
+            print('  ' * depth, '--> None (bail_bad)')
         return None
 
     # print(f'Considering guess: {guess} {groups}')
@@ -202,7 +215,8 @@ def expected_plays_for_guess(
         # print(f'  {guesses_needed:.2f} {new_quads}')
         num += guesses_needed * num_for_this
         den += num_for_this
-    # print('  ' * depth, f'--> {num} / {den} = {num / den}')
+    if DEBUG:
+        print('  ' * depth, f'--> {num} / {den} = {num / den}')
     return num / den
 
 
@@ -210,7 +224,8 @@ def find_best_plays(
     lookup: Dict[str, Dict[str, str]], quads: List[List[str]], depth=0
 ) -> List[Tuple[float, str]]:
     """Return the bets next plays based on expected of remaining plays."""
-    # print('  ' * depth, f'find_best_plays {quads}')
+    if DEBUG:
+        print('  ' * depth, f'find_best_plays {quads}')
     if not quads:
         return [(0, '')]  # we won!
 
