@@ -210,7 +210,7 @@ def expected_plays_for_guess(
 
         # This isn't quite right, there must be some correlation between new_quads
         # print('possible quad', new_quads)
-        next_guesses = find_best_plays(lookup, new_quads, depth=1+depth)
+        next_guesses = find_best_plays(lookup, new_quads, depth=1+depth, num_needed=1)
         guesses_needed = next_guesses[0][0]
         # print(f'  {guesses_needed:.2f} {new_quads}')
         num += guesses_needed * num_for_this
@@ -221,7 +221,7 @@ def expected_plays_for_guess(
 
 
 def find_best_plays(
-    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], depth=0
+    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], depth=0, num_needed=10
 ) -> List[Tuple[float, str]]:
     """Return the bets next plays based on expected of remaining plays."""
     if DEBUG:
@@ -241,15 +241,25 @@ def find_best_plays(
             return [(1 + expected_plays_for_guess(lookup, others, guess, bail_bad=False, depth=1+depth), guess)]
 
     # Try everything
+    # TODO: only keep the best one if num_needed=1
+    # TODO: pass along a max depth option to bail out
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
+
+    # Only consider words that gain information
+    reasonable = []
+    for guess in allowed:
+        gain = sum(information_gain(lookup, words, guess) for words in quads)
+        if gain > 0:
+            reasonable.append(guess)
+
     plays = [
-        (expected_plays_for_guess(lookup, quads, guess, bail_bad=True, depth=1+depth), guess) for guess in allowed
+        (expected_plays_for_guess(lookup, quads, guess, bail_bad=True, depth=1+depth), guess) for guess in reasonable
     ]
 
     plays = [(1+n, guess) for n, guess in plays if n is not None]
     plays.sort()
-    return plays[:10]
+    return plays[:num_needed]
 
 
 if __name__ == "__main__":
@@ -296,7 +306,7 @@ if __name__ == "__main__":
             print(f"Quad {i} is one of {quad}")
 
     quads = [w for w in words if w is not None]
-    if poss < 200:
+    if poss < 100:
         # with few possibilities, game out remaining guesses
         print(quads)
         plays = find_best_plays(lookup, quads)
@@ -315,3 +325,4 @@ if __name__ == "__main__":
         gains.sort(reverse=True)
         for gain, word in gains[:10]:
             print(f"  {word} -> +{gain:.2f} bits")
+        # print('Words with no information gain: ', len([w for gain, w in gains if gain == 0.0]))
