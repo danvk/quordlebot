@@ -247,15 +247,20 @@ def find_best_plays(
     allowed = [*lookup[wordbank[0]].keys()]
 
     # Only consider words that gain information
-    reasonable = []
+    by_gain = []
     for guess in allowed:
         gain = sum(information_gain(lookup, words, guess) for words in quads)
         if gain > 0:
-            reasonable.append(guess)
+            by_gain.append((gain, guess))
+    by_gain.sort(reverse=True)
+    reasonable = [guess for gain, guess in by_gain]
 
-    plays = [
-        (expected_plays_for_guess(lookup, quads, guess, bail_bad=True, depth=1+depth), guess) for guess in reasonable
-    ]
+    plays = []
+    for i, guess in enumerate(reasonable):
+        n = expected_plays_for_guess(lookup, quads, guess, bail_bad=True, depth=1+depth)
+        if depth == 0:
+            print(f'{i} / {len(reasonable)}: {guess} --> {n} plays to win')
+        plays.append((n, guess))
 
     plays = [(1+n, guess) for n, guess in plays if n is not None]
     plays.sort()
@@ -302,11 +307,11 @@ if __name__ == "__main__":
             continue
         if len(quad) == 1:
             print(f"Quad {i} must be {quad[0]}")
-        elif len(quad) <= 5:
+        elif len(quad) <= 10:
             print(f"Quad {i} is one of {quad}")
 
     quads = [w for w in words if w is not None]
-    if poss < 100:
+    if poss < 0:
         # with few possibilities, game out remaining guesses
         print(quads)
         plays = find_best_plays(lookup, quads)
