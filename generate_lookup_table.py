@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 """Generate a word pair -> green/yellow mapping."""
 
+from typing import Dict, List
 from quordlebot import result_for_guess
 import json
 import pickle
+
 
 if __name__ == "__main__":
     wordbank = [word.strip() for word in open("words/wordbank.txt")]

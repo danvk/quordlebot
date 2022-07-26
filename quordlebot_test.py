@@ -1,4 +1,5 @@
 from typing import Dict, List
+from priors import flatten
 from quordlebot import Guess, expected_plays_for_guess, find_best_plays, result_for_guess, is_valid_for_guess, is_valid_for_guesses, get_valid_solutions, encode_result, decode_result
 
 
@@ -74,3 +75,10 @@ def test_expected_plays_for_guess():
 
     assert expected_plays_for_guess(lookup, [['DOING'], ['GOING']], 'DOING', False) == 1.0
     assert expected_plays_for_guess(lookup, [['DOING'], ['GOING']], 'DOING', True) == 1.0
+
+
+def test_find_best_plays():
+    quads = [['FRANK'], ['FORGE', 'GORGE']]
+    lookup = build_lookup(flatten(quads))
+
+    assert find_best_plays(lookup, quads) == [(2, 'FRANK')]

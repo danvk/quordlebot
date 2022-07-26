@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import math
 import pickle
 import itertools
-from typing import List, Dict, Iterable, Tuple, Union
+from typing import List, Dict, Iterable, Set, Tuple, Union
 import sys
 
 
@@ -68,6 +68,16 @@ def filter_by_guess_lookup(
     lookup: Dict[str, Dict[str, str]], words: List[str], guess: Guess
 ) -> List[str]:
     return [word for word in words if lookup[word][guess.word] == guess.result]
+
+
+def build_lookup(wordbank: List[str], allowed: List[str]) -> Dict[str, Dict[str, str]]:
+    out = {}
+    combined = [*sorted([*wordbank, *allowed])]
+    for word in enumerate(wordbank):
+        out[word] = {}
+        for guess in combined:
+            out[word][guess] = result_for_guess(word, guess)
+    return out
 
 
 def information_gain(
@@ -274,6 +284,15 @@ def find_best_plays(
     plays = [(1+n, guess) for n, guess in plays if n is not None]
     plays.sort()
     return plays[:num_needed]
+
+
+def filter_lookup(lookup: Dict[str, Dict[str, str]], dictionary: Set[str]) -> Dict[str, Dict[str, str]]:
+    """Shrink a lookup table to a fixed dictionary of guesses."""
+    return {
+        guess: results
+        for guess, results in lookup.items()
+        if guess in dictionary
+    }
 
 
 if __name__ == "__main__":
