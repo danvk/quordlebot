@@ -114,6 +114,10 @@ Next steps:
 - [ ] Factor out a Quordle class
 - [x] ROAST / CLINE seems to always result in far more bits of information gain than `priors.py` suggests should be expected (~35 bits vs. 9.6 bits). What's going on? (It's four boards vs. one!)
 - [ ] How frequently does ROAST / CLINE / HUMID or ROAST / CLINE / DUMPY give you a guaranteed seven?
+- [ ] How often is CLINE the best second guess after ROAST?
+- [ ] What are the odds of getting a six if you go for it?
+- [ ] Can Python distinguish guessable/wordbank indices via nominal types?
+- [ ] Why do I have to import ResultDict to unpickle `array.pickle`?
 
 Updated best and worst first guesses:
 
@@ -145,3 +149,5 @@ Best first two guesses:
     DOILT CARSE -> +9.56 bits
 
 ROAST/CLINE feels somewhat not made up; CRANE/TOILS are both clearly real words.
+
+After playing ROAST/CLINE, there's a fully-determined word ~70% of the time.

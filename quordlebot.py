@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import math
 import pickle
 import itertools
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Iterable, Tuple, Union
 import sys
 
 
@@ -148,6 +148,15 @@ class ArrayWordle:
         )
         entropy = sum(n * math.log2(n) for n in nexts.values()) / num
         return base_entropy - entropy
+
+    def filter_by_guess(self, candidates: Iterable[int], guess: int, solution: int) -> List[int]:
+        """Filter a set of candidate words based on a guess and the solution."""
+        result = self.results[solution][guess]
+        return [
+            i
+            for i in candidates
+            if self.results[i][guess] == result
+        ]
 
 
 def groupby(xs, fn):
