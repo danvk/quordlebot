@@ -168,6 +168,12 @@ class ArrayWordle:
             if self.results[i][guess] == result
         ]
 
+    def information_gain_for_play(self, candidates: List[int], guess: int) -> float:
+        base_entropy = math.log2(len(candidates))
+        nexts = Counter(self.results[word][guess] for word in candidates)
+        entropy = sum(n * math.log2(n) for n in nexts.values()) / sum(nexts.values())
+        return base_entropy - entropy
+
 
 def groupby(xs, fn):
     out = {}

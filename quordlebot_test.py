@@ -77,8 +77,20 @@ def test_expected_plays_for_guess():
     assert expected_plays_for_guess(lookup, [['DOING'], ['GOING']], 'DOING', True) == 1.0
 
 
-def test_find_best_plays():
+def test_find_best_plays2():
     quads = [['FRANK'], ['FORGE', 'GORGE']]
     lookup = build_lookup(flatten(quads))
 
     assert find_best_plays(lookup, quads) == [(2, 'FRANK')]
+
+
+def test_find_best_plays10():
+    quads = [
+        ['BLAND', 'BLANK', 'FLANK', 'GLAND', 'PLANK'],
+        ['PALSY', 'SALSA'],
+        ['BRAND', 'DRANK', 'FRANK', 'GRAND', 'PRANK'],
+        ['FORGE', 'GORGE', 'HORDE']
+    ]
+    lookup = build_lookup(flatten(quads) + ['GAPED'])
+    print(find_best_plays(lookup, quads))
+    assert False
