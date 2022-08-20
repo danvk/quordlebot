@@ -307,13 +307,21 @@ def expected_plays_after_guess(
 
     Precondition: len(quads) > 0, none of the quads should be fully-determined.
     """
-    sp = ' ' * depth
     # group the remaining quads by what this guess would produce
     # for q in quads:
     #    if len(q) <= 1:
     #        assert len(q) > 1
 
-    print(f'{sp}expected_plays_after_guess {guess}')
+    if DEBUG:
+        sp = ' ' * depth
+        print(f'{sp}expected_plays_after_guess {guess}')
+
+    # TODO: special case the situation where this was definitely a correct guess?
+    #       In this case we can eliminate the itertools.product.
+    for quad in quads:
+        if len(quad) == 1 and quad[0] == guess:
+            other_quads = [q for q in quads if q != quad]
+            return expected_plays_after_guess(lookup, other_quads, guess, depth=depth)
 
     groups: List[List[List[str]]] = []
     for quad in quads:
@@ -334,7 +342,8 @@ def expected_plays_after_guess(
         den = math.prod(len(q) for q in new_quads)
         nums.append(num)
         dens.append(den)
-        print(f'{sp}+ {num} / {den} {new_quads}')
+        if DEBUG:
+            print(f'{sp}+ {num} / {den} {new_quads}')
 
     # weighted average
     return sum(num * den for num, den in zip(nums, dens)) / sum(dens)
@@ -355,7 +364,8 @@ def find_best_play(
 
     # 0.5. If all words are fully determined, we're done.
     if all(len(q) == 1 for q in quads):
-        print(f'{sp}find_best_play({len(lookup)}, {quads}) -> {len(quads)}, {quads[0][0]} (all determined)')
+        if DEBUG:
+            print(f'{sp}find_best_play({len(lookup)}, {quads}) -> {len(quads)}, {quads[0][0]} (all determined)')
         return len(quads), quads[0][0]
 
     # 1. Always play a fully-determined word.
@@ -370,26 +380,36 @@ def find_best_play(
 
     # 1.5. With exactly two words left, the expected number of plays is 1.5.
     if len(quads) == 1 and len(quads[0]) == 2:
-        print(f'{sp}find_best_play({len(lookup)}, {quads}) -> 1.5, {quads[0][0]} (two case)')
+        if DEBUG:
+            print(f'{sp}find_best_play({len(lookup)}, {quads}) -> 1.5, {quads[0][0]} (two case)')
         return 1.5, quads[0][0]
 
-    print(f'{sp}find_best_play({len(lookup)}, {quads})')
+    if DEBUG:
+        print(f'{sp}find_best_play({len(lookup)}, {quads})')
 
     # 2. Try playing each of the possible words.
     #    If the best expected plays < 1 + len(quads), then we're done.
-    possible_words = {word for quad in quads for word in quad}
+    possible_words = {word for quad in sorted(quads, key=lambda q: len(q)) for word in quad}
+    m = min(len(q) for q in quads)
+    best_possible = len(quads) + (m - 1) / m
     # XXX constructing this explicitly may not be necessary
-    # TODO: bail if any one guess achieves the best possible result of N + (M-1)/M
     restricted_lookup = filter_lookup(lookup, possible_words)
-    remaining_plays, restricted_guess = min(
-        (expected_plays_after_guess(restricted_lookup, quads, guess, depth=1+depth), guess)
-        for guess in possible_words
-    )
-    restricted_plays = 1 + remaining_plays
+    restricted_plays, restricted_guess = 1000, None
+    for i, guess in enumerate(possible_words):
+        plays = 1 + expected_plays_after_guess(restricted_lookup, quads, guess, depth=1+depth)
+        if plays < restricted_plays:
+            restricted_plays = plays
+            restricted_guess = guess
+            if plays <= best_possible:
+                # print(f'{sp}-> bailing after {1 + i} / {len(possible_words)} on restricted search')
+                break
+
     if restricted_plays <= 1 + len(quads):
-        print(f'{sp}-> Restricted search yields {restricted_plays}, {restricted_guess}')
+        if DEBUG or depth == 0:
+            print(f'{sp}-> Restricted search yields {restricted_plays}, {restricted_guess}')
         return restricted_plays, restricted_guess
-    print(f'{sp}- Restricted check failed; best was {restricted_plays}, {restricted_guess} for {quads}')
+    if DEBUG or depth == 0:
+        print(f'{sp}- Restricted check failed; best was {restricted_plays}, {restricted_guess} for {quads}')
 
     # 3. Try all possible plays ordered by IG; only consider the top 100.
     by_gain: List[Tuple[float, str]] = []
@@ -405,12 +425,14 @@ def find_best_play(
     best_plays, best_word = restricted_plays, restricted_guess
     for i, (gain, guess) in enumerate(by_gain[:100]):
         num = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth)
-        print(f'{sp}- {i} / {n}: {guess} -> {num} plays to win')
+        if DEBUG or depth == 0:
+            print(f'{sp}- {i} / {n}: {guess} -> {num} plays to win')
         if num < best_plays:
             best_plays = num
             best_word = guess
 
-    print(f'{sp}-> {best_plays}, {best_word}')
+    if DEBUG:
+        print(f'{sp}-> {best_plays}, {best_word}')
     return best_plays, best_word
 
 
@@ -471,7 +493,7 @@ if __name__ == "__main__":
     quads = [w for w in words if w is not None]
     if poss < 200:
         # with few possibilities, game out remaining guesses
-        print(quads)
+        print('All possibilities: ', quads)
         plays, guess = find_best_play(lookup, quads)
         print("Best play by expected number of steps to complete:")
         print(f"  +{plays:.2f} {guess} ({plays + len(guesses):.2f} total)")
