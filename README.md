@@ -151,3 +151,17 @@ Best first two guesses:
 ROAST/CLINE feels somewhat not made up; CRANE/TOILS are both clearly real words.
 
 After playing ROAST/CLINE, there's a fully-determined word ~70% of the time.
+
+If you only look at pairs of words from the wordbank, here are the top ones:
+
+    TRICE SALON -> +9.58 bits
+    STOLE CAIRN -> +9.56 bits
+    TRAIN CLOSE -> +9.56 bits
+    LINER COAST -> +9.55 bits
+    SLANT CRIED -> +9.52 bits
+    STAIR CLONE -> +9.52 bits
+    TRAIL SCONE -> +9.52 bits
+    SPILT CRANE -> +9.52 bits
+    SLANT PRICE -> +9.51 bits
+
+"TRICE" feels made-up, but TRAIN / CLOSE is great.
