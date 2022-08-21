@@ -37,3 +37,19 @@ This one runs into a case where there's 15 possible words for one quad and five 
     find_best_play(2315, [['DEIGN', 'FEIGN', 'GIVEN', 'VIXEN', 'WIDEN'], ['DEBAR', 'EAGER', 'GAMER', 'GAYER', 'GAZER', 'PAPER', 'PARER', 'PAYER', 'RARER', 'REBAR', 'REPAY', 'WAFER', 'WAGER', 'WAVER', 'ZEBRA']])
 
 Adding a max depth filter is pretty effective at cutting this off. I set it at 10, but this could be even more aggressive based on the number of plays already done.
+
+Avoiding a copy of the lookup table in the restricted search was a big performance win. Before that optimization, I didn't have the patience to let this command finish:
+
+    $ ./quordlebot.py TOUGH,DYING,PLUME,DOUGH ROAST CLINE
+    Best play by expected number of steps to complete:
+     1. 7.270 DUMPY (+5.270 plays, +8.88 bits)
+     2. 7.370 MOODY (is solution, +5.370 plays, +8.78 bits)
+     3. 7.410 DYING (is solution, +5.410 plays, +6.76 bits)
+     4. 7.436 FLUME (is solution, +5.436 plays, +5.25 bits)
+     5. 7.452 DEPTH (+5.452 plays, +7.75 bits)
+     6. 7.457 PUDGY (+5.457 plays, +8.50 bits)
+     7. 7.464 EMBED (+5.464 plays, +6.36 bits)
+     8. 7.473 HUMID (+5.473 plays, +8.08 bits)
+     9. 7.476 DOGMA (+5.476 plays, +7.40 bits)
+    10.  7.479 APHID (+5.479 plays, +6.80 bits)
+    ./quordlebot.py TOUGH,DYING,PLUME,DOUGH ROAST CLINE  270.39s user 1.37s system 99% cpu 4:32.10 total

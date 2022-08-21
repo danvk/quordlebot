@@ -301,7 +301,8 @@ def expected_plays_after_guess(
     quads: List[List[str]],
     guess: str,
     *,
-    depth=0
+    depth=0,
+    is_restricted=False
 ) -> float:
     """After guessing guess, how many additional plays do we expect to need?
 
@@ -325,7 +326,7 @@ def expected_plays_after_guess(
     for quad in quads:
         if len(quad) == 1 and quad[0] == guess:
             other_quads = [q for q in quads if q != quad]
-            return expected_plays_after_guess(lookup, other_quads, guess, depth=depth)
+            return expected_plays_after_guess(lookup, other_quads, guess, depth=depth, is_restricted=is_restricted)
 
     groups: List[List[List[str]]] = []
     for quad in quads:
@@ -341,7 +342,7 @@ def expected_plays_after_guess(
             # As a special case, if we guessed right, then remove this quad from the recursion.
             new_quads = [q for q in new_quads if q != [guess]]
 
-        additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth)
+        additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth, is_restricted=is_restricted)
         num = additional_plays
         den = math.prod(len(q) for q in new_quads)
         nums.append(num)
@@ -365,7 +366,7 @@ ALL_MOVES: List[PossibleMove] = []
 
 
 def find_best_play(
-    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], *, depth=0
+    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], *, depth=0, is_restricted=False
 ) -> Tuple[float, str]:
     """Find the single best play based on expected number of plays.
 
@@ -399,7 +400,7 @@ def find_best_play(
         if len(quad) == 1:
             guess = quad[0]
             other_quads = [q for j, q in enumerate(quads) if i != j]
-            remaining_plays = expected_plays_after_guess(lookup, other_quads, guess, depth=1+depth)
+            remaining_plays = expected_plays_after_guess(lookup, other_quads, guess, depth=1+depth, is_restricted=is_restricted)
             if depth == 0:
                 ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=1 + remaining_plays, information_gain=0.0))
             return 1 + remaining_plays, guess
@@ -424,12 +425,12 @@ def find_best_play(
     m = min(len(q) for q in quads)
     best_possible = len(quads) + (m - 1) / m
     # XXX constructing this explicitly may not be necessary
-    restricted_lookup = filter_lookup(lookup, possible_words)
+    # restricted_lookup = filter_lookup(lookup, possible_words)
     restricted_plays, restricted_guess = 1000, None
     n = len(possible_words)
     # TODO: sort possible_words by something like information gain and truncate
     for i, guess in enumerate(possible_words):
-        plays = 1 + expected_plays_after_guess(restricted_lookup, quads, guess, depth=1+depth)
+        plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True)
         if DEBUG or depth == 0:
             print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
         if depth == 0:
@@ -450,26 +451,27 @@ def find_best_play(
         print(f'{sp}- Restricted check failed; best was {restricted_plays}, {restricted_guess} for {quads}')
 
     # 3. Try all possible plays ordered by IG; only consider the top 100.
-    by_gain: List[Tuple[float, str]] = []
-    for guess in lookup.keys():
-        if guess in possible_words:
-            continue  # already covered this in step 2.
-        gain = sum(information_gain(lookup, words, guess) for words in quads)
-        if gain > 0:
-            by_gain.append((gain, guess))
-    by_gain.sort(reverse=True)
-
-    n = min(len(by_gain), 100)
     best_plays, best_word = restricted_plays, restricted_guess
-    for i, (gain, guess) in enumerate(by_gain[:100]):
-        plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth)
-        if DEBUG or depth == 0:
-            print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
-        if depth == 0:
-            ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
-        if plays < best_plays:
-            best_plays = plays
-            best_word = guess
+    if not is_restricted:
+        by_gain: List[Tuple[float, str]] = []
+        for guess in lookup.keys():
+            if guess in possible_words:
+                continue  # already covered this in step 2.
+            gain = sum(information_gain(lookup, words, guess) for words in quads)
+            if gain > 0:
+                by_gain.append((gain, guess))
+        by_gain.sort(reverse=True)
+
+        n = min(len(by_gain), 100)
+        for i, (gain, guess) in enumerate(by_gain[:100]):
+            plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted)
+            if DEBUG or depth == 0:
+                print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
+            if depth == 0:
+                ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
+            if plays < best_plays:
+                best_plays = plays
+                best_word = guess
 
     if DEBUG:
         print(f'{sp}-> {best_plays}, {best_word}')
