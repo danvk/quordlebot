@@ -312,6 +312,10 @@ def expected_plays_after_guess(
     #    if len(q) <= 1:
     #        assert len(q) > 1
 
+    if depth > 20:
+        # This isn't exactly right but is quite effective!
+        return 100
+
     if DEBUG:
         sp = ' ' * depth
         print(f'{sp}expected_plays_after_guess {guess}')
@@ -360,6 +364,10 @@ def find_best_play(
     if not quads:
         return 0, ''
 
+    global max_depth
+    if depth > max_depth:
+        max_depth = depth
+        print(f'New max depth {depth}')
     sp = ' ' * depth
 
     # 0.5. If all words are fully determined, we're done.
