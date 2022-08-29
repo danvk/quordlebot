@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import math
 import pickle
 import itertools
-from typing import List, Dict, Iterable, Set, Tuple, Union
+from typing import List, Dict, Iterable, Set, Tuple
 import sys
 
 
@@ -191,111 +191,6 @@ DEBUG = False
 max_depth = 0
 
 
-def expected_plays_for_guess(
-    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], guess: str, bail_bad: bool, depth=0
-) -> Union[float, None]:
-    """Return the number of expected plays to win _after_ this guess."""
-    if DEBUG:
-        print('  ' * depth, 'expected_plays_for_guess', quads, guess, bail_bad)
-
-    global max_depth
-    if depth > max_depth:
-        max_depth = depth
-        print(f'new max depth: {max_depth} for guess {guess}')
-
-    # group the remaining quads by what this guess would produce
-    groups = []
-    poss = 1
-    for quad in quads:
-        # assert len(quad) > 1
-        g = groupby(quad, lambda word: lookup[word][guess])
-        if DEBUG:
-            print('  ' * depth, g)
-        poss *= len(g)
-        groups.append([*g.values()])
-    # print(groups)
-
-    if bail_bad and poss == 1 and not(any(quad == [guess] for quad in quads)):
-        # This was a bad guess; bail out
-        # print(f'Bailing on bad guess: {guess} {groups}')
-        if DEBUG:
-            print('  ' * depth, '--> None (bail_bad)')
-        return None
-
-    # print(f'Considering guess: {guess} {groups}')
-
-    # print(groups)
-    # form a weighted average of steps to solve
-    num = 0.0
-    den = 0
-    for new_quads in itertools.product(*groups):
-        # print(new_quads)
-        num_for_this = math.prod(len(q) for q in new_quads)
-        if any(quad == [guess] for quad in new_quads):
-            # As a special case, if we guessed right, then remove this quad from the recursion.
-            nnq = [quad for quad in new_quads if quad != [guess]]
-            # print(f'{new_quads} --> {nnq}')
-            new_quads = nnq
-
-        # This isn't quite right, there must be some correlation between new_quads
-        # print('possible quad', new_quads)
-        next_guesses = find_best_plays(lookup, new_quads, depth=1+depth, num_needed=1)
-        guesses_needed = next_guesses[0][0]
-        # print(f'  {guesses_needed:.2f} {new_quads}')
-        num += guesses_needed * num_for_this
-        den += num_for_this
-    if DEBUG:
-        print('  ' * depth, f'--> {num} / {den} = {num / den}')
-    return num / den
-
-
-def find_best_plays(
-    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], depth=0, num_needed=10
-) -> List[Tuple[float, str]]:
-    """Return the best next plays based on expected of remaining plays."""
-    if DEBUG:
-        print('  ' * depth, f'find_best_plays {quads}')
-    if not quads:
-        return [(0, '')]  # we won!
-
-    # if any quad is fully-determined, guess that
-    for i, quad in enumerate(quads):
-        if len(quad) == 1:
-            guess = quad[0]
-            others = [q for j, q in enumerate(quads) if i != j]
-            if not others:
-                # we're done!
-                return [(1, guess)]
-
-            return [(1 + expected_plays_for_guess(lookup, others, guess, bail_bad=False, depth=1+depth), guess)]
-
-    # Try everything
-    # TODO: only keep the best one if num_needed=1
-    # TODO: pass along a max depth option to bail out
-    wordbank = [*lookup.keys()]
-    allowed = [*lookup[wordbank[0]].keys()]
-
-    # Only consider words that gain information
-    by_gain = []
-    for guess in allowed:
-        gain = sum(information_gain(lookup, words, guess) for words in quads)
-        if gain > 0:
-            by_gain.append((gain, guess))
-    by_gain.sort(reverse=True)
-    reasonable = [guess for gain, guess in by_gain]
-
-    plays = []
-    for i, guess in enumerate(reasonable):
-        n = expected_plays_for_guess(lookup, quads, guess, bail_bad=True, depth=1+depth)
-        if depth == 0:
-            print(f'{i} / {len(reasonable)}: {guess} --> {n} plays to win')
-        plays.append((n, guess))
-
-    plays = [(1+n, guess) for n, guess in plays if n is not None]
-    plays.sort()
-    return plays[:num_needed]
-
-
 def expected_plays_after_guess(
     lookup: Dict[str, Dict[str, str]],
     quads: List[List[str]],
@@ -308,13 +203,9 @@ def expected_plays_after_guess(
 
     Precondition: len(quads) > 0, none of the quads should be fully-determined.
     """
-    # group the remaining quads by what this guess would produce
-    # for q in quads:
-    #    if len(q) <= 1:
-    #        assert len(q) > 1
-
-    if depth > 20:
+    if depth > 12:
         # This isn't exactly right but is quite effective!
+        # TODO: adjust the depth check based on the number of previous plays
         return 100
 
     if DEBUG:
@@ -328,6 +219,7 @@ def expected_plays_after_guess(
             other_quads = [q for q in quads if q != quad]
             return expected_plays_after_guess(lookup, other_quads, guess, depth=depth, is_restricted=is_restricted)
 
+    # group the remaining quads by what this guess would produce
     groups: List[List[List[str]]] = []
     for quad in quads:
         g: Dict[str, List[str]] = groupby(quad, lambda word: lookup[word][guess])
@@ -475,8 +367,6 @@ def find_best_play(
 
     if DEBUG:
         print(f'{sp}-> {best_plays}, {best_word}')
-    if depth == 0:
-        ALL_MOVES.sort(key=lambda move: move.expected_plays)
     return best_plays, best_word
 
 
@@ -540,6 +430,7 @@ if __name__ == "__main__":
         print('All possibilities: ', quads)
         plays, guess = find_best_play(lookup, quads)
         print('Best play by expected number of steps to complete:')
+        ALL_MOVES.sort(key=lambda move: move.expected_plays)
         for i, m in enumerate(ALL_MOVES[:25]):
             plays = m.expected_plays + len(guesses)
             soln = 'is solution, ' if m.is_solution else ''

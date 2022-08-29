@@ -37,6 +37,7 @@ This one runs into a case where there's 15 possible words for one quad and five 
     find_best_play(2315, [['DEIGN', 'FEIGN', 'GIVEN', 'VIXEN', 'WIDEN'], ['DEBAR', 'EAGER', 'GAMER', 'GAYER', 'GAZER', 'PAPER', 'PARER', 'PAYER', 'RARER', 'REBAR', 'REPAY', 'WAFER', 'WAGER', 'WAVER', 'ZEBRA']])
 
 Adding a max depth filter is pretty effective at cutting this off. I set it at 10, but this could be even more aggressive based on the number of plays already done.
+-> Tightening this had surprisingly little effect.
 
 Avoiding a copy of the lookup table in the restricted search was a big performance win. Before that optimization, I didn't have the patience to let this command finish:
 
@@ -53,3 +54,5 @@ Avoiding a copy of the lookup table in the restricted search was a big performan
      9. 7.476 DOGMA (+5.476 plays, +7.40 bits)
     10.  7.479 APHID (+5.479 plays, +6.80 bits)
     ./quordlebot.py TOUGH,DYING,PLUME,DOUGH ROAST CLINE  270.39s user 1.37s system 99% cpu 4:32.10 total
+
+I wonder whether ArrayWordler could help at this point?
