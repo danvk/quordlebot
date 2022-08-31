@@ -9,7 +9,7 @@ Install / generate lookup tables:
     python3 -m venv venv
     pip install -r requirements.txt
 
-    ./generate_lookup_table.py
+    ./generate_lookup_table.py  # takes ~4 minutes
     ./generate_array.py
     ls -lh words/map.pickle words/array.pickle
 
