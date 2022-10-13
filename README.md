@@ -107,14 +107,15 @@ Next steps:
   - [x] Expected number of remaining guesses doesn't seem right?
   - [x] Sort un-forced guesses by information gain
   - [ ] Prune by "best so far"; but when can you bail out if you're looking for expected number of plays?
-  - [ ] Only keep track of optimal number in the cases where that's what we care about
-- [ ] Ignore subsequent guesses after you've gotten a word
+  - [x] Only keep track of optimal number in the cases where that's what we care about
+- [x] Ignore subsequent guesses after you've gotten a word
 - [ ] Switch `quordlebot.py` to use the array format
 - [x] Add a mode that takes the four words and your guesses, rather than .yg
 - [ ] Factor out a Quordle class
 - [x] ROAST / CLINE seems to always result in far more bits of information gain than `priors.py` suggests should be expected (~35 bits vs. 9.6 bits). What's going on? (It's four boards vs. one!)
 - [ ] How frequently does ROAST / CLINE / HUMID or ROAST / CLINE / DUMPY give you a guaranteed seven?
 - [ ] How often is CLINE the best second guess after ROAST?
+- [ ] Report the expected vs. actual information gain of each of your guesses
 - [ ] What are the odds of getting a six if you go for it?
 - [ ] Can Python distinguish guessable/wordbank indices via nominal types?
 - [ ] Why do I have to import ResultDict to unpickle `array.pickle`?
@@ -165,3 +166,44 @@ If you only look at pairs of words from the wordbank, here are the top ones:
     SLANT PRICE -> +9.51 bits
 
 "TRICE" feels made-up, but TRAIN / CLOSE is great.
+
+Here's a very slow run (~7h) with mixed solution / non-solution plays:
+
+    ./quordlebot.py CHAFF,LOWLY,SWORE,PAPER TRAIN CLOSE  14292.83s user 38.97s system 58% cpu 6:45:06.09 total
+    Best play by expected number of steps to complete:
+    1. 7.535 PUDGY (+5.535 plays, +6.73 bits)
+    2. 7.537 CHAMP (is solution, +5.537 plays, +5.72 bits)
+    3. 7.558 DOGMA (+5.558 plays, +5.73 bits)
+    4. 7.595 MOLDY (is solution, +5.595 plays, +5.76 bits)
+    5. 7.619 PADDY (+5.619 plays, +6.59 bits)
+    6. 7.619 GOLEM (+5.619 plays, +5.90 bits)
+    7. 7.624 DOPEY (+5.624 plays, +6.45 bits)
+    8. 7.639 GODLY (is solution, +5.639 plays, +5.06 bits)
+    9. 7.645 PYGMY (+5.645 plays, +6.64 bits)
+    10. 7.651 MADLY (+5.651 plays, +6.11 bits)
+    11. 7.654 DUMPY (+5.654 plays, +6.60 bits)
+    12. 7.663 MOGUL (is solution, +5.663 plays, +4.91 bits)
+
+Another slow one:
+
+    ./quordlebot.py HAREM,GAILY,TRITE,KNEAD TRAIN CLOSE
+    Best play by expected number of steps to complete:
+    1. 7.537 EMPTY (+5.537 plays, +7.26 bits)
+    2. 7.600 PYGMY (+5.600 plays, +7.35 bits)
+    3. 7.631 DEPTH (+5.631 plays, +6.53 bits)
+    4. 7.641 DUMPY (+5.641 plays, +7.33 bits)
+    5. 7.706 PARTY (+5.706 plays, +6.28 bits)
+    6. 7.713 BLIMP (+5.713 plays, +6.49 bits)
+    7. 7.725 APHID (+5.725 plays, +6.77 bits)
+    8. 7.740 EMBED (+5.740 plays, +6.54 bits)
+    9. 7.744 AMPLY (+5.744 plays, +7.18 bits)
+    10. 7.749 GIPSY (+5.749 plays, +6.39 bits)
+
+If you want to go for five, what's the best first word to play? For some of our standard openers, here's how many words are fully-determined by the opening play, or a 50/50:
+
+- ROAST: 35 / 26
+- CLINE: 30 / 28
+- TRAIN: 32 / 32
+- CLOSE: 21 / 26
+
+So play ROAST before CLINE and TRAIN before CLOSE.
