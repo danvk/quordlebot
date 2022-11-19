@@ -19,7 +19,7 @@ def top_second_guesses(wordler: ArrayWordle, guess1: int, guessables: List[int])
     gains.sort(reverse=True)
     guess1_str = wordler.guessable[guess1]
     best = gains[:20]
-    with open(f'priors/{guess1_str}.txt', 'w') as out:
+    with open(f'priors/for5/{guess1_str}.txt', 'w') as out:
         json.dump({
             wordler.guessable[g2]: gain
             for gain, g1, g2 in best
@@ -47,13 +47,20 @@ if __name__ == "__main__":
         for wordbank_idx in wordler.all_wordbank_words()
     ]
 
-    gains = [
-        (
-            wordler.information_gain(i),
-            i
-        )
-        for i in guessable
-    ]
+    if len(sys.argv) == 1:
+        gains = [
+            (
+                wordler.information_gain(i),
+                i
+            )
+            for i in guessable
+        ]
+    else:
+        gains = []
+        for line in open(sys.argv[1]):
+            word = line.strip()
+            i = wordler.guessable_to_idx[word]
+            gains.append((wordler.information_gain(i), i))
 
     gains.sort(reverse=True)
     print([(wordler.guessable[i], gain) for gain, i in gains[:10]])

@@ -119,6 +119,11 @@ Next steps:
 - [ ] What are the odds of getting a six if you go for it?
 - [ ] Can Python distinguish guessable/wordbank indices via nominal types?
 - [ ] Why do I have to import ResultDict to unpickle `array.pickle`?
+- [ ] Measure optimal performance
+  - [ ] What's quordlebot's expected number of guesses / distribution?
+  - [ ] How frequently does "go for 5" work? What does it cost you?
+- [ ] Add a `--today` (or default) option that mimics Quorlde's Mersenne Twister; Also add a `--no-spoilers` option?
+- [ ] When's the next time that TRAIN / CLOSE / FILET / SONAR will be an answer?
 
 Updated best and worst first guesses:
 
@@ -207,3 +212,14 @@ If you want to go for five, what's the best first word to play? For some of our 
 - CLOSE: 21 / 26
 
 So play ROAST before CLINE and TRAIN before CLOSE.
+
+What if you want to go for five? Some variations:
+
+- FILET / SONAR: 37 / 46, 9.276 information gain
+- FLIRT / CANOE: 32 / 52, 9.286 IG
+- SATIN / CRUEL: 35 / 38, 9.429 IG
+- TRIED / SALON: 35 / 36, 9.444 IG
+- ROAST / CLINE: 35 / 26, 9.61 IG
+- TRAIN / CLOSE: 32 / 32, 9.558 IG
+
+(Note: this only considered wordbank words for the second guess for IG.)
