@@ -20,8 +20,15 @@ Je.prototype.init_seed = function(e) {
       (((e & 4294901760) >>> 16) * 1812433253 << 16) +
       (e & 65535) * 1812433253 +
       this.mti;
-      this.mt[this.mti] >>>= 0;
+    this.mt[this.mti] >>>= 0;
   }
+  console.log(this.N)
+  console.log(this.M)
+  console.log(this.MATRIX_A)
+  console.log(this.UPPER_MASK)
+  console.log(this.LOWER_MASK)
+  console.log(this.mt)
+  console.log(this.mti)
 };
 Je.prototype.random_int = function() {
   var e, t = new Array(0, this.MATRIX_A);
@@ -101,3 +108,11 @@ const wordBank = "ABACK ABASE ABATE ABBEY ABBOT ABHOR ABIDE ABLED ABODE ABORT AB
 
 const seed = ja();
 console.log(generateWords(seed, wordBank, blacklist));
+
+const mt = new Je(10);
+for (let i = 0; i < 10; i++) {
+  console.log(i, mt.random_int());
+}
+
+// console.log(-1024 >> 2);
+// console.log(-1024 >>> 2);
