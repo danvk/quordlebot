@@ -10,11 +10,14 @@ Finds the plays that maximize information gain.
 
 from collections import Counter
 from dataclasses import dataclass
+import datetime
 import math
 import pickle
 import itertools
 from typing import List, Dict, Iterable, Set, Tuple
 import sys
+
+import twister
 
 
 @dataclass
@@ -387,9 +390,20 @@ if __name__ == "__main__":
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
 
-    (correct_raw, *guesses) = sys.argv[1:]
-    correct = correct_raw.split(",")
-    assert len(correct) == 4
+    args = [*sys.argv[1:]]
+    if ',' in args[0]:
+        correct = args[0].split(",")
+        assert len(correct) == 4
+        args.pop(0)
+    elif '/' in args[0]:
+        year, month, day = [int(x) for x in args[0].split('/')]
+        d = datetime.date(year, month, day)
+        correct = twister.words_for_date(d)
+        args.pop(0)
+    else:
+        correct = twister.words_for_date(datetime.date.today())
+
+    guesses = args
 
     words = [wordbank, wordbank, wordbank, wordbank]
     pposs = len(wordbank) ** 4

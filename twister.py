@@ -108,16 +108,12 @@ def generate_words(seed: int, wordbank: List[str], blacklist: Set[str]) -> List[
     return words
 
 
-
-if __name__ == '__main__':
+def words_for_date(d: datetime.date) -> List[str]:
     words = [word.strip() for word in open('words/wordbank.txt')]
     blacklist = {word.strip() for word in open('words/blacklist.txt')}
-    print(len(words))
-    print(len(blacklist))
-    # datetime.date.today()
-    seed = get_seed(datetime.date.today())
-    print(seed)
-    # mt_seed(seed)
-    # for i in range(10):
-    #     print(i, rand_int31())
-    print(generate_words(seed, words, blacklist))
+    seed = get_seed(d)
+    return generate_words(seed, words, blacklist)
+
+
+if __name__ == '__main__':
+    print(words_for_date(datetime.date.today()))
