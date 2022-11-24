@@ -47,6 +47,12 @@ def extract_number():
         y = y - 2 ** 32
     return y
 
+def rand_int31():
+    y = extract_number()
+    if y < 0:
+        y = y + 2 ** 32
+    y = y >> 1
+    return y
 
 # Generate the next n values from the series x_i
 def twist():
@@ -61,4 +67,4 @@ def twist():
 if __name__ == '__main__':
     mt_seed(10)
     for i in range(10):
-        print(i, extract_number())
+        print(i, rand_int31())
