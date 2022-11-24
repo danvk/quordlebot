@@ -105,12 +105,12 @@ console.log(wordBank.length);
 console.log(blacklist.size);
 const seed = ja();
 console.log(seed);
-// console.log(generateWords(seed, wordBank, blacklist));
+console.log(generateWords(seed, wordBank, blacklist));
 
-const mt = new Je(10);
-for (let i = 0; i < 10; i++) {
-  console.log(i, mt.random_int31());
-}
+// const mt = new Je(seed);
+// for (let i = 0; i < 10; i++) {
+//   console.log(i, mt.random_int31());
+// }
 
 // console.log(-1024 >> 2);
 // console.log(-1024 >>> 2);

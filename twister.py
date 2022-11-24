@@ -75,6 +75,7 @@ def get_seed(d: datetime.date):
 
 
 def generate_words(seed: int, wordbank: List[str], blacklist: Set[str]) -> List[str]:
+    words = []
     mt_seed(seed)
     rand_int31()
     rand_int31()
@@ -113,9 +114,10 @@ if __name__ == '__main__':
     blacklist = {word.strip() for word in open('words/blacklist.txt')}
     print(len(words))
     print(len(blacklist))
-    s = get_seed(datetime.date.today())
-    print(s)
-    mt_seed(10)
-    for i in range(10):
-        print(i, rand_int31())
-    # print(generate_words(s, words, blacklist))
+    # datetime.date.today()
+    seed = get_seed(datetime.date.today())
+    print(seed)
+    # mt_seed(seed)
+    # for i in range(10):
+    #     print(i, rand_int31())
+    print(generate_words(seed, words, blacklist))
