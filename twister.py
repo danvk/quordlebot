@@ -1,5 +1,8 @@
 # See https://github.com/yinengy/Mersenne-Twister-in-Python/blob/master/MT19937.py
 
+import datetime
+
+
 # coefficients for MT19937
 (w, n, m, r) = (32, 624, 397, 31)
 a = 0x9908B0DF
@@ -64,7 +67,18 @@ def twist():
         MT[i] = MT[(i + m) % n] ^ xA
 
 
+def get_seed(d: datetime.date):
+    elapsed = d - datetime.date(2022, 1, 24)
+    return elapsed.days
+
+
 if __name__ == '__main__':
-    mt_seed(10)
+    words = [word.strip() for word in open('words/wordbank.txt')]
+    blacklist = {word.strip() for word in open('words/blacklist.txt')}
+    print(len(words))
+    print(len(blacklist))
+    s = get_seed(datetime.date.today())
+    print(s)
+    mt_seed(s)
     for i in range(10):
         print(i, rand_int31())
