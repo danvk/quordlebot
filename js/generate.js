@@ -52,7 +52,9 @@ Je.prototype.random_int = function() {
   return e;
 };
 Je.prototype.random_int31 = function() {
-  return this.random_int() >>> 1
+  const x = this.random_int() >>> 1;
+  // console.log(x);
+  return x;
 };
 
   const Ne = {
@@ -103,12 +105,12 @@ console.log(wordBank.length);
 console.log(blacklist.size);
 const seed = ja();
 console.log(seed);
-console.log(generateWords(seed, wordBank, blacklist));
+// console.log(generateWords(seed, wordBank, blacklist));
 
-// const mt = new Je(10);
-// for (let i = 0; i < 10; i++) {
-//   console.log(i, mt.random_int31());
-// }
+const mt = new Je(10);
+for (let i = 0; i < 10; i++) {
+  console.log(i, mt.random_int31());
+}
 
 // console.log(-1024 >> 2);
 // console.log(-1024 >>> 2);

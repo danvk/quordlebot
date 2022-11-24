@@ -1,6 +1,7 @@
 # See https://github.com/yinengy/Mersenne-Twister-in-Python/blob/master/MT19937.py
 
 import datetime
+from typing import List, Set
 
 
 # coefficients for MT19937
@@ -55,6 +56,7 @@ def rand_int31():
     if y < 0:
         y = y + 2 ** 32
     y = y >> 1
+    # print(y)
     return y
 
 # Generate the next n values from the series x_i
@@ -72,6 +74,40 @@ def get_seed(d: datetime.date):
     return elapsed.days
 
 
+def generate_words(seed: int, wordbank: List[str], blacklist: Set[str]) -> List[str]:
+    mt_seed(seed)
+    rand_int31()
+    rand_int31()
+    rand_int31()
+    rand_int31()
+    while True:
+        words = [
+            wordbank[rand_int31() % len(wordbank)],
+            wordbank[rand_int31() % len(wordbank)],
+            wordbank[rand_int31() % len(wordbank)],
+            wordbank[rand_int31() % len(wordbank)],
+        ]
+
+        if (
+            words[0] == words[1] or
+            words[0] == words[2] or
+            words[0] == words[3] or
+            words[1] == words[2] or
+            words[1] == words[3] or
+            words[2] == words[3] or
+            words[0] in blacklist or
+            words[1] in blacklist or
+            words[2] in blacklist or
+            words[3] in blacklist
+        ):
+            continue
+        else:
+            break
+
+    return words
+
+
+
 if __name__ == '__main__':
     words = [word.strip() for word in open('words/wordbank.txt')]
     blacklist = {word.strip() for word in open('words/blacklist.txt')}
@@ -79,6 +115,7 @@ if __name__ == '__main__':
     print(len(blacklist))
     s = get_seed(datetime.date.today())
     print(s)
-    mt_seed(s)
+    mt_seed(10)
     for i in range(10):
         print(i, rand_int31())
+    # print(generate_words(s, words, blacklist))
