@@ -122,8 +122,9 @@ Next steps:
 - [ ] Measure optimal performance
   - [ ] What's quordlebot's expected number of guesses / distribution?
   - [ ] How frequently does "go for 5" work? What does it cost you?
-- [ ] Add a `--today` (or default) option that mimics Quorlde's Mersenne Twister; Also add a `--no-spoilers` option?
-- [ ] When's the next time that TRAIN / CLOSE / FILET / SONAR will be an answer?
+- [x] Add a `--today` (or default) option that mimics Quorlde's Mersenne Twister;
+- [x] When's the next time that TRAIN / CLOSE / FILET / SONAR will be an answer?
+- [ ] Add a `--no-spoilers` option
 
 Updated best and worst first guesses:
 
