@@ -117,14 +117,15 @@ Next steps:
 - [ ] How often is CLINE the best second guess after ROAST?
 - [ ] Report the expected vs. actual information gain of each of your guesses
 - [ ] What are the odds of getting a six if you go for it?
-- [ ] Can Python distinguish guessable/wordbank indices via nominal types?
+- [ ] Can Python distinguish guessable/wordbank indices via nominal types? (Sorta https://docs.python.org/3/library/typing.html#newtype)
 - [ ] Why do I have to import ResultDict to unpickle `array.pickle`?
 - [ ] Measure optimal performance
   - [ ] What's quordlebot's expected number of guesses / distribution?
   - [ ] How frequently does "go for 5" work? What does it cost you?
 - [x] Add a `--today` (or default) option that mimics Quorlde's Mersenne Twister;
 - [x] When's the next time that TRAIN / CLOSE / FILET / SONAR will be an answer?
-- [ ] Add a `--no-spoilers` option
+- [x] Add a `--no-spoilers` option
+- [ ] Improve the startup time for `quordle.py`
 
 Updated best and worst first guesses:
 

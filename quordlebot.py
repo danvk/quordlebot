@@ -8,6 +8,7 @@ Usage:
 Finds the plays that maximize information gain.
 """
 
+import argparse
 from collections import Counter
 from dataclasses import dataclass
 import datetime
@@ -385,25 +386,28 @@ def filter_lookup(lookup: Dict[str, Dict[str, str]], dictionary: Set[str]) -> Di
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-q', '--no-spoilers', action='store_true', help='Avoid printing possible answers')
+    parser.add_argument('guesses', metavar='guesses', type=str, nargs='+',
+                    help='Guesses for today\'s Quordle. First may be A,B,C,D to set solution or YYYY/MM/DD to set date.')
+    args = parser.parse_args()
     # lookup = json.load(open('words/map.json'))
     lookup = pickle.load(open("words/map.pickle", "rb"))
     wordbank = [*lookup.keys()]
     allowed = [*lookup[wordbank[0]].keys()]
 
-    args = [*sys.argv[1:]]
-    if ',' in args[0]:
-        correct = args[0].split(",")
+    guesses = args.guesses
+    if ',' in guesses[0]:
+        correct = guesses[0].split(",")
         assert len(correct) == 4
-        args.pop(0)
-    elif '/' in args[0]:
-        year, month, day = [int(x) for x in args[0].split('/')]
+        guesses.pop(0)
+    elif '/' in guesses[0]:
+        year, month, day = [int(x) for x in guesses[0].split('/')]
         d = datetime.date(year, month, day)
         correct = twister.words_for_date(d)
-        args.pop(0)
+        guesses.pop(0)
     else:
         correct = twister.words_for_date(datetime.date.today())
-
-    guesses = args
 
     words = [wordbank, wordbank, wordbank, wordbank]
     pposs = len(wordbank) ** 4
@@ -428,6 +432,9 @@ if __name__ == "__main__":
         gain = math.log2(pposs) - math.log2(poss)
         print(f'{guess} {"  ".join(results)} -> {counts} = {poss} +{gain:.2f} bits')
         pposs = poss
+
+    if args.no_spoilers:
+        sys.exit(0)
 
     # Report fully- or nearly-determined words.
     for i, quad in enumerate(words):
