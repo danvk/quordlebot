@@ -126,6 +126,9 @@ Next steps:
 - [x] When's the next time that TRAIN / CLOSE / FILET / SONAR will be an answer?
 - [x] Add a `--no-spoilers` option
 - [ ] Improve the startup time for `quordle.py`
+- [x] Change progress printout to use a single line / progress bar
+- [ ] Print current word / performance on progress bar
+- [ ] Change all displayed numbers to be total plays (not additional plays)
 
 Updated best and worst first guesses:
 
