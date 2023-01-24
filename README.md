@@ -129,6 +129,8 @@ Next steps:
 - [x] Change progress printout to use a single line / progress bar
 - [ ] Print current word / performance on progress bar
 - [ ] Change all displayed numbers to be total plays (not additional plays)
+- [ ] Show expected number of remaining plays in `--no-spoilers` mode
+- [ ] Show other possibilities after you get a correct guess, even in `--no-spoilers` mode.
 
 Updated best and worst first guesses:
 

@@ -19,6 +19,7 @@ from typing import List, Dict, Iterable, Set, Tuple
 import sys
 
 import twister
+from progress import ProgressBar, FakeProgressBar
 
 
 @dataclass
@@ -326,21 +327,24 @@ def find_best_play(
     n = len(possible_words)
     # TODO: sort possible_words by something like information gain and truncate
 
-    words_gen = possible_words if depth > 0 else progress_bar(possible_words)
+    meter = FakeProgressBar if depth > 0 else ProgressBar
 
-    for i, guess in enumerate(words_gen):
-        plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True)
-        if DEBUG:
-            print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
-        if depth == 0:
-            gain = sum(information_gain(lookup, words, guess) for words in quads)
-            ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=plays, information_gain=gain))
-        if plays < restricted_plays:
-            restricted_plays = plays
-            restricted_guess = guess
-            if plays <= best_possible:
-                # print(f'{sp}-> bailing after {1 + i} / {len(possible_words)} on restricted search')
-                break
+    with meter() as progress:
+        num = len(possible_words)
+        for i, guess in enumerate(possible_words):
+            plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True)
+            if DEBUG:
+                print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
+            if depth == 0:
+                gain = sum(information_gain(lookup, words, guess) for words in quads)
+                ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=plays, information_gain=gain))
+                progress.print(i + 1, num, f'{guess} -> {plays} plays to win')
+            if plays < restricted_plays:
+                restricted_plays = plays
+                restricted_guess = guess
+                if plays <= best_possible:
+                    # print(f'{sp}-> bailing after {1 + i} / {len(possible_words)} on restricted search')
+                    break
 
     if restricted_plays <= 1 + len(quads):
         if DEBUG or depth == 0:
@@ -362,17 +366,18 @@ def find_best_play(
         by_gain.sort(reverse=True)
 
         n = min(len(by_gain), 100)
-        by_gain_gen = by_gain[:100] if depth > 0 else progress_bar(by_gain[:100])
 
-        for i, (gain, guess) in enumerate(by_gain_gen):
-            plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted)
-            if DEBUG:
-                print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
-            if depth == 0:
-                ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
-            if plays < best_plays:
-                best_plays = plays
-                best_word = guess
+        with meter() as progress:
+            for i, (gain, guess) in enumerate(by_gain[:100]):
+                plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted)
+                if DEBUG:
+                    print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
+                if depth == 0:
+                    ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
+                    progress.print(i + 1, n, f'{guess} -> {plays} plays to win')
+                if plays < best_plays:
+                    best_plays = plays
+                    best_word = guess
 
     if DEBUG:
         print(f'{sp}-> {best_plays}, {best_word}')
@@ -388,35 +393,6 @@ def filter_lookup(lookup: Dict[str, Dict[str, str]], dictionary: Set[str]) -> Di
         }
         for solution in dictionary
     }
-
-# See https://stackoverflow.com/a/34325723/388951
-def progress_bar(iterable, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    """Call in a loop to create terminal progress bar
-
-    @params:
-        iterable    - Required  : iterable object (Iterable)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    total = len(iterable)
-    # Progress Bar Printing Function
-    def printProgressBar (iteration):
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Initial Call
-    printProgressBar(0)
-    # Update Progress Bar
-    for i, item in enumerate(iterable):
-        yield item
-        printProgressBar(i + 1)
-    # Print New Line on Complete
-    print()
 
 
 if __name__ == "__main__":
