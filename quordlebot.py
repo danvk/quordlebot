@@ -233,27 +233,22 @@ def expected_plays_after_guess(
         g: Dict[str, List[str]] = groupby(quad, lambda word: lookup[word][guess])
         groups.append([*g.values()])
 
-    meter = ProgressBar if track_progress else FakeProgressBar
     nums: List[float] = []
     dens: List[int] = []
     new_quads: List[List[str]]
-    num_to_check = math.prod(len(g) for g in groups)
-    with meter() as progress:
-        for i, new_quads in enumerate(itertools.product(*groups)):
-            # This is one possible set of quads after playing guess.
-            if any(quad == [guess] for quad in new_quads):
-                # As a special case, if we guessed right, then remove this quad from the recursion.
-                new_quads = [q for q in new_quads if q != [guess]]
+    for new_quads in itertools.product(*groups):
+        # This is one possible set of quads after playing guess.
+        if any(quad == [guess] for quad in new_quads):
+            # As a special case, if we guessed right, then remove this quad from the recursion.
+            new_quads = [q for q in new_quads if q != [guess]]
 
-            additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth, is_restricted=is_restricted, track_progress=False)
-            num = additional_plays
-            den = math.prod(len(q) for q in new_quads)
-            nums.append(num)
-            dens.append(den)
-            if DEBUG:
-                print(f'{sp}+ {num} / {den} {new_quads}')
-            if track_progress:
-                progress.print(i+1, num_to_check, '')
+        additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth, is_restricted=is_restricted, track_progress=False)
+        num = additional_plays
+        den = math.prod(len(q) for q in new_quads)
+        nums.append(num)
+        dens.append(den)
+        if DEBUG:
+            print(f'{sp}+ {num} / {den} {new_quads}')
 
     # weighted average
     return sum(num * den for num, den in zip(nums, dens)) / sum(dens)
