@@ -202,7 +202,8 @@ def expected_plays_after_guess(
     guess: str,
     *,
     depth=0,
-    is_restricted=False
+    is_restricted=False,
+    track_progress=False,
 ) -> float:
     """After guessing guess, how many additional plays do we expect to need?
 
@@ -222,7 +223,9 @@ def expected_plays_after_guess(
     for quad in quads:
         if len(quad) == 1 and quad[0] == guess:
             other_quads = [q for q in quads if q != quad]
-            return expected_plays_after_guess(lookup, other_quads, guess, depth=depth, is_restricted=is_restricted)
+            if track_progress:
+                print(f'Preserving track_progress w/ {guess} at depth={depth}')
+            return expected_plays_after_guess(lookup, other_quads, guess, depth=depth, is_restricted=is_restricted, track_progress=track_progress)
 
     # group the remaining quads by what this guess would produce
     groups: List[List[List[str]]] = []
@@ -230,22 +233,27 @@ def expected_plays_after_guess(
         g: Dict[str, List[str]] = groupby(quad, lambda word: lookup[word][guess])
         groups.append([*g.values()])
 
+    meter = ProgressBar if track_progress else FakeProgressBar
     nums: List[float] = []
     dens: List[int] = []
     new_quads: List[List[str]]
-    for new_quads in itertools.product(*groups):
-        # This is one possible set of quads after playing guess.
-        if any(quad == [guess] for quad in new_quads):
-            # As a special case, if we guessed right, then remove this quad from the recursion.
-            new_quads = [q for q in new_quads if q != [guess]]
+    num_to_check = math.prod(len(g) for g in groups)
+    with meter() as progress:
+        for i, new_quads in enumerate(itertools.product(*groups)):
+            # This is one possible set of quads after playing guess.
+            if any(quad == [guess] for quad in new_quads):
+                # As a special case, if we guessed right, then remove this quad from the recursion.
+                new_quads = [q for q in new_quads if q != [guess]]
 
-        additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth, is_restricted=is_restricted)
-        num = additional_plays
-        den = math.prod(len(q) for q in new_quads)
-        nums.append(num)
-        dens.append(den)
-        if DEBUG:
-            print(f'{sp}+ {num} / {den} {new_quads}')
+            additional_plays, _ = find_best_play(lookup, new_quads, depth=1+depth, is_restricted=is_restricted, track_progress=False)
+            num = additional_plays
+            den = math.prod(len(q) for q in new_quads)
+            nums.append(num)
+            dens.append(den)
+            if DEBUG:
+                print(f'{sp}+ {num} / {den} {new_quads}')
+            if track_progress:
+                progress.print(i+1, num_to_check, '')
 
     # weighted average
     return sum(num * den for num, den in zip(nums, dens)) / sum(dens)
@@ -263,7 +271,7 @@ ALL_MOVES: List[PossibleMove] = []
 
 
 def find_best_play(
-    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], *, depth=0, is_restricted=False
+    lookup: Dict[str, Dict[str, str]], quads: List[List[str]], *, depth=0, is_restricted=False, track_progress=False
 ) -> Tuple[float, str]:
     """Find the single best play based on expected number of plays.
 
@@ -297,12 +305,13 @@ def find_best_play(
         if len(quad) == 1:
             guess = quad[0]
             other_quads = [q for j, q in enumerate(quads) if i != j]
-            remaining_plays = expected_plays_after_guess(lookup, other_quads, guess, depth=1+depth, is_restricted=is_restricted)
+            # Continue tracking progress if there was a forced play at depth=0
+            if track_progress:
+                print(f'Preserving track_progress after forced play of {guess} @ depth={depth}')
+            remaining_plays = expected_plays_after_guess(lookup, other_quads, guess, depth=1 + depth, is_restricted=is_restricted, track_progress=track_progress)
             if depth == 0:
                 ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=1 + remaining_plays, information_gain=0.0))
             return 1 + remaining_plays, guess
-
-    # print(f'{sp}find_best_play({len(lookup)}, {[len(q) for q in quads]})')
 
     # 1.5. With exactly two words left, the expected number of plays is 1.5.
     if len(quads) == 1 and len(quads[0]) == 2:
@@ -327,18 +336,18 @@ def find_best_play(
     n = len(possible_words)
     # TODO: sort possible_words by something like information gain and truncate
 
-    meter = FakeProgressBar if depth > 0 else ProgressBar
+    meter = ProgressBar if track_progress else FakeProgressBar
 
     with meter() as progress:
         num = len(possible_words)
         for i, guess in enumerate(possible_words):
-            plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True)
+            plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True, track_progress=False)
             if DEBUG:
                 print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
             if depth == 0:
                 gain = sum(information_gain(lookup, words, guess) for words in quads)
                 ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=plays, information_gain=gain))
-                progress.print(i + 1, num, f'{guess} -> {plays} plays to win')
+                progress.print(i + 1, num, f'{guess} -> {plays:.2f} plays to win')
             if plays < restricted_plays:
                 restricted_plays = plays
                 restricted_guess = guess
@@ -351,7 +360,7 @@ def find_best_play(
             print(f'{sp}-> Restricted search yields {restricted_plays}, {restricted_guess}')
         return restricted_plays, restricted_guess
     if DEBUG or depth == 0:
-        print(f'{sp}- Restricted check failed; best was {restricted_plays}, {restricted_guess} for {quads}')
+        print(f'{sp}- Restricted check failed; best was {restricted_plays:.2f}, {restricted_guess} for {quads}')
 
     # 3. Try all possible plays ordered by IG; only consider the top 100.
     best_plays, best_word = restricted_plays, restricted_guess
@@ -369,12 +378,12 @@ def find_best_play(
 
         with meter() as progress:
             for i, (gain, guess) in enumerate(by_gain[:100]):
-                plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted)
+                plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted, track_progress=False)
                 if DEBUG:
                     print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
                 if depth == 0:
                     ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
-                    progress.print(i + 1, n, f'{guess} -> {plays} plays to win')
+                    progress.print(i + 1, n, f'{guess} -> {plays:.2f} plays to win')
                 if plays < best_plays:
                     best_plays = plays
                     best_word = guess
@@ -459,7 +468,7 @@ if __name__ == "__main__":
     if poss < 2000:
         # with few possibilities, game out remaining guesses
         print('All possibilities: ', quads)
-        plays, guess = find_best_play(lookup, quads)
+        plays, guess = find_best_play(lookup, quads, track_progress=True)
         print('Best play by expected number of steps to complete:')
         ALL_MOVES.sort(key=lambda move: move.expected_plays)
         for i, m in enumerate(ALL_MOVES[:25]):
