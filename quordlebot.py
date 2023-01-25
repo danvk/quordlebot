@@ -333,7 +333,7 @@ def find_best_play(
 
     meter = ProgressBar if track_progress else FakeProgressBar
 
-    with meter() as progress:
+    with meter(width=50) as progress:
         num = len(possible_words)
         for i, guess in enumerate(possible_words):
             plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=True, track_progress=False)
@@ -342,19 +342,20 @@ def find_best_play(
             if depth == 0:
                 gain = sum(information_gain(lookup, words, guess) for words in quads)
                 ALL_MOVES.append(PossibleMove(guess=guess, is_solution=True, expected_plays=plays, information_gain=gain))
-                progress.print(i + 1, num, f'{guess} -> {plays:.2f} plays to win')
             if plays < restricted_plays:
                 restricted_plays = plays
                 restricted_guess = guess
                 if plays <= best_possible:
                     # print(f'{sp}-> bailing after {1 + i} / {len(possible_words)} on restricted search')
                     break
+            if depth == 0:
+                progress.print(i + 1, num, f'{guess} -> {plays:.2f} plays to win; best is {restricted_guess}/{restricted_plays:.2f}')
 
     if restricted_plays <= 1 + len(quads):
         if DEBUG or depth == 0:
             print(f'{sp}-> Restricted search yields {restricted_plays}, {restricted_guess}')
         return restricted_plays, restricted_guess
-    if DEBUG or depth == 0:
+    if DEBUG:
         print(f'{sp}- Restricted check failed; best was {restricted_plays:.2f}, {restricted_guess} for {quads}')
 
     # 3. Try all possible plays ordered by IG; only consider the top 100.
@@ -371,17 +372,17 @@ def find_best_play(
 
         n = min(len(by_gain), 100)
 
-        with meter() as progress:
+        with meter(width=50) as progress:
             for i, (gain, guess) in enumerate(by_gain[:100]):
                 plays = 1 + expected_plays_after_guess(lookup, quads, guess, depth=1+depth, is_restricted=is_restricted, track_progress=False)
                 if DEBUG:
                     print(f'{sp}- {i} / {n}: {guess} -> {plays} plays to win')
-                if depth == 0:
-                    ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
-                    progress.print(i + 1, n, f'{guess} -> {plays:.2f} plays to win')
                 if plays < best_plays:
                     best_plays = plays
                     best_word = guess
+                if depth == 0:
+                    ALL_MOVES.append(PossibleMove(guess=guess, is_solution=False, expected_plays=plays, information_gain=gain))
+                    progress.print(i + 1, n, f'{guess} -> {plays:.2f} plays to win; best is {best_word}/{best_plays:.2f}')
 
     if DEBUG:
         print(f'{sp}-> {best_plays}, {best_word}')
